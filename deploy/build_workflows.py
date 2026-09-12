@@ -194,12 +194,14 @@ dash = {"id": "psxdash0001", "name": "PSX 6. Virtual Dashboard", "nodes": [], "c
         "settings": {"executionOrder": "v1", "timezone": "Asia/Karachi"}, "active": False}
 dash["nodes"] += [
     {"parameters": {"path": "psx-virtual-dashboard", "httpMethod": "GET", "responseMode": "responseNode", "options": {}},
-     "type": "n8n-nodes-base.webhook", "typeVersion": 2, "id": "dash-page-webhook", "name": "Dashboard Page", "position": [-300, 340]},
+     "type": "n8n-nodes-base.webhook", "typeVersion": 1.2, "webhookId": "d5a1e2f0-6f4a-4b8e-9c21-7d0e5a1b2c01",
+     "id": "dash-page-webhook", "name": "Dashboard Page", "position": [-300, 340]},
     {"parameters": {"respondWith": "text", "responseBody": DASH_HTML,
                     "options": {"responseHeaders": {"entries": [{"name": "Content-Type", "value": "text/html; charset=utf-8"}]}}},
      "type": "n8n-nodes-base.respondToWebhook", "typeVersion": 1.1, "id": "dash-page-respond", "name": "Respond Page", "position": [-60, 340]},
     {"parameters": {"path": "psx-virtual-dashboard-data", "httpMethod": "GET", "responseMode": "responseNode", "options": {}},
-     "type": "n8n-nodes-base.webhook", "typeVersion": 2, "id": "dash-data-webhook", "name": "Data In", "position": [-300, 700]},
+     "type": "n8n-nodes-base.webhook", "typeVersion": 1.2, "webhookId": "d5a1e2f0-6f4a-4b8e-9c21-7d0e5a1b2c02",
+     "id": "dash-data-webhook", "name": "Data In", "position": [-300, 700]},
 ]
 dash["connections"]["Dashboard Page"] = {"main": [[{"node": "Respond Page", "type": "main", "index": 0}]]}
 TABS = ["Holding", "Cash", "Settings", "Watchlist", "Signals", "Trades", "State", "Equity"]

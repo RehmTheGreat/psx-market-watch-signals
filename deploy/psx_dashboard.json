@@ -10,7 +10,8 @@
     "options": {}
    },
    "type": "n8n-nodes-base.webhook",
-   "typeVersion": 2,
+   "typeVersion": 1.2,
+   "webhookId": "d5a1e2f0-6f4a-4b8e-9c21-7d0e5a1b2c01",
    "id": "dash-page-webhook",
    "name": "Dashboard Page",
    "position": [
@@ -50,7 +51,8 @@
     "options": {}
    },
    "type": "n8n-nodes-base.webhook",
-   "typeVersion": 2,
+   "typeVersion": 1.2,
+   "webhookId": "d5a1e2f0-6f4a-4b8e-9c21-7d0e5a1b2c02",
    "id": "dash-data-webhook",
    "name": "Data In",
    "position": [
