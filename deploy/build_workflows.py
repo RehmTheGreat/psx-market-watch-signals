@@ -222,7 +222,8 @@ dash["nodes"].append(code_node("Assemble",
     "const out = {holding: [], cash: [], settings: [], watchlist: [], signals: [], trades: [], state: [], equity: []};\n"
     "for (const item of $input.all()) {\n"
     "  const j = item.json || {};\n"
-    "  if (j.__tab && out[j.__tab]) out[j.__tab].push(j.row);\n"
+    "  const k = String(j.__tab || '').toLowerCase();\n"
+    "  if (out[k]) out[k].push(j.row);\n"
     "}\n"
     "return [{json: {fetched_at: new Date().toISOString(), ...out}}];", [640, 1080]))
 dash["nodes"].append({"parameters": {"respondWith": "firstIncomingItem", "options": {}},

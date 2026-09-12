@@ -428,7 +428,7 @@
   },
   {
    "parameters": {
-    "jsCode": "const out = {holding: [], cash: [], settings: [], watchlist: [], signals: [], trades: [], state: [], equity: []};\nfor (const item of $input.all()) {\n  const j = item.json || {};\n  if (j.__tab && out[j.__tab]) out[j.__tab].push(j.row);\n}\nreturn [{json: {fetched_at: new Date().toISOString(), ...out}}];"
+    "jsCode": "const out = {holding: [], cash: [], settings: [], watchlist: [], signals: [], trades: [], state: [], equity: []};\nfor (const item of $input.all()) {\n  const j = item.json || {};\n  const k = String(j.__tab || '').toLowerCase();\n  if (out[k]) out[k].push(j.row);\n}\nreturn [{json: {fetched_at: new Date().toISOString(), ...out}}];"
    },
    "type": "n8n-nodes-base.code",
    "typeVersion": 2,
