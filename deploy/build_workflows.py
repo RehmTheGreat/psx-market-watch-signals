@@ -123,22 +123,26 @@ for n in repo["nodes"]:
         m["parameters"]["sheetName"] = {"__rl": True, "value": tab, "mode": "name"}
         m["credentials"] = copy.deepcopy(SHEETS_CRED)
     if m["name"] == "OpenAI Format Signals":
-        # rehms-inference gateway exposes Anthropic /v1/messages ONLY (no /v1/responses route).
-        # Body needs a single leading "=" (expression mode); the repo's "=={{ }}" renders a
-        # literal "=" into the JSON body and every API rejects it.
-        m["parameters"]["url"] = "https://84-235-242-203.sslip.io/v1/messages"
+        # Groq chat completions (pc ruling 2026-09-13: PSX AI-format runs on Groq's free tier,
+        # NOT on rehms-inference). Body needs a single leading "=" (expression mode); the
+        # repo's "=={{ }}" renders a literal "=" into the JSON body and every API rejects it.
+        m["parameters"]["url"] = "https://api.groq.com/openai/v1/chat/completions"
         m["parameters"].pop("authentication", None); m["parameters"].pop("genericAuthType", None)
         m["parameters"]["body"] = "={{ JSON.stringify($json.openai_request) }}"
         m["parameters"]["sendHeaders"] = True
-        m["parameters"]["headerParameters"] = {"parameters": [{"name": "Authorization", "value": "Bearer __GW_KEY__"}]}
+        m["parameters"]["headerParameters"] = {"parameters": [{"name": "Authorization", "value": "Bearer __GROQ_KEY__"}]}
         m.pop("credentials", None)
     if m["name"] == "Build Signals":
-        # Translate the OpenAI Responses request into the Anthropic /v1/messages contract.
+        # Translate the OpenAI Responses request into Groq's chat-completions contract.
+        # Model is a Settings-tab value (groq_model); default openai/gpt-oss-120b because
+        # pc's asked-for llama-70b-instruct is decommissioned on Groq (closest 70B-class free model).
         c = m["parameters"]["jsCode"]
         reps = [
-            ('settings.openai_model || "gpt-4o-mini"', 'settings.openai_model || "fable"'),
-            ('  temperature: 0.2,\n  max_output_tokens: 2500,\n  instructions:\n',
-             '  max_tokens: 2500,\n  system:\n'),
+            ('settings.openai_model || "gpt-4o-mini"', 'settings.groq_model || "openai/gpt-oss-120b"'),
+            ('  max_output_tokens: 2500,\n  instructions:\n',
+             '  max_completion_tokens: 2500,\n'
+             '  response_format: { type: "json_object" },\n'
+             '  messages: [\n    {\n      role: "system",\n      content:\n'),
             ('must equal the number of rows returned.",',
              'must equal the number of rows returned. Return exactly this JSON shape and nothing else: '
              '{\\"email_subject\\": string, \\"email_html\\": string, \\"signal_count\\": integer, \\"rows\\": [{\\"symbol\\": string, '
@@ -146,23 +150,27 @@ for n in repo["nodes"]:
              '\\"current_price\\": number|null, \\"market_volume\\": number|null, \\"reason\\": string}]}. '
              'Output raw JSON with no markdown fences.",'),
             ('  input: JSON.stringify({\n',
-             '  messages: [\n    {\n      role: "user",\n      content: JSON.stringify({\n'),
+             '    },\n    {\n      role: "user",\n      content: JSON.stringify({\n'),
         ]
         for old, new in reps:
             assert old in c, "Build Signals anchor missing: " + old[:50]
             c = c.replace(old, new, 1)
         c2 = re.sub(r"  \}\),\n  text: \{[\s\S]*?\n\};", "  })\n    }\n  ]\n};", c, count=1)
-        assert c2 != c and "text: {" not in c2 and "messages: [" in c2, "Build Signals tail rewrite failed"
+        assert c2 != c and "text: {" not in c2 and "messages: [" in c2 and "json_object" in c2, "Build Signals tail rewrite failed"
         m["parameters"]["jsCode"] = c2
     if m["name"] == "Extract Email":
-        # Anthropic reply shape: content[].type === "text" (keep the OpenAI branches for repo parity).
+        # Anthropic + chat-completions reply shapes (keep the OpenAI Responses branches for repo parity).
         c = m["parameters"]["jsCode"]
         anchor = "let outputText = null;\n"
         anth = (anchor + "\n"
                 'if (!outputText && Array.isArray(response.content)) {\n'
                 '  for (const contentItem of response.content) {\n'
                 '    if (contentItem.type === "text" && typeof contentItem.text === "string") {\n'
-                "      outputText = contentItem.text;\n      break;\n    }\n  }\n}\n")
+                "      outputText = contentItem.text;\n      break;\n    }\n  }\n}\n"
+                'if (!outputText && Array.isArray(response.choices) && response.choices.length > 0) {\n'
+                '  const msg = response.choices[0].message;\n'
+                '  if (msg && typeof msg.content === "string") outputText = msg.content;\n'
+                "}\n")
         assert anchor in c, "Extract Email anchor missing"
         m["parameters"]["jsCode"] = c.replace(anchor, anth, 1)
     if m["name"] == "Send Signal Email":
