@@ -130,7 +130,9 @@ for n in repo["nodes"]:
         m["parameters"].pop("authentication", None); m["parameters"].pop("genericAuthType", None)
         m["parameters"]["body"] = "={{ JSON.stringify($json.openai_request) }}"
         m["parameters"]["sendHeaders"] = True
-        m["parameters"]["headerParameters"] = {"parameters": [{"name": "Authorization", "value": "Bearer __GROQ_KEY__"}]}
+        m["parameters"]["headerParameters"] = {"parameters": [{"name": "Authorization", "value": "Bearer __GROQ_KEY__"},
+            {"name": "User-Agent", "value": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36"}]}
+        # browser UA required: Groq is behind Cloudflare and 1010-blocks non-browser UAs from the VPS
         m.pop("credentials", None)
     if m["name"] == "Build Signals":
         # Translate the OpenAI Responses request into Groq's chat-completions contract.
