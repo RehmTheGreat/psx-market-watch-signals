@@ -273,39 +273,93 @@
      "schema": [
       {
        "id": "run_ts",
-       "name": "run_ts"
+       "name": "run_ts",
+       "displayName": "run_ts",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "symbol",
-       "name": "symbol"
+       "name": "symbol",
+       "displayName": "symbol",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "action",
-       "name": "action"
+       "name": "action",
+       "displayName": "action",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "quantity",
-       "name": "quantity"
+       "name": "quantity",
+       "displayName": "quantity",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "limit_price",
-       "name": "limit_price"
+       "name": "limit_price",
+       "displayName": "limit_price",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "current_price",
-       "name": "current_price"
+       "name": "current_price",
+       "displayName": "current_price",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "change_pct",
-       "name": "change_pct"
+       "name": "change_pct",
+       "displayName": "change_pct",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "trade_value",
-       "name": "trade_value"
+       "name": "trade_value",
+       "displayName": "trade_value",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "reason",
-       "name": "reason"
+       "name": "reason",
+       "displayName": "reason",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       }
      ]
     }

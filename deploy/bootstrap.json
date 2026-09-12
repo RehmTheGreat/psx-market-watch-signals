@@ -96,11 +96,23 @@
      "schema": [
       {
        "id": "key",
-       "name": "key"
+       "name": "key",
+       "displayName": "key",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "value",
-       "name": "value"
+       "name": "value",
+       "displayName": "value",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       }
      ]
     }
@@ -154,15 +166,33 @@
      "schema": [
       {
        "id": "symbol",
-       "name": "symbol"
+       "name": "symbol",
+       "displayName": "symbol",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "max_trade_value",
-       "name": "max_trade_value"
+       "name": "max_trade_value",
+       "displayName": "max_trade_value",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "lot_size",
-       "name": "lot_size"
+       "name": "lot_size",
+       "displayName": "lot_size",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       }
      ]
     }
@@ -205,7 +235,13 @@
      "schema": [
       {
        "id": "amount",
-       "name": "amount"
+       "name": "amount",
+       "displayName": "amount",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       }
      ]
     }
@@ -259,11 +295,23 @@
      "schema": [
       {
        "id": "key",
-       "name": "key"
+       "name": "key",
+       "displayName": "key",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "value",
-       "name": "value"
+       "name": "value",
+       "displayName": "value",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       }
      ]
     }

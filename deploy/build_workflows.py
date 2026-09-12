@@ -13,7 +13,10 @@ def sheets_node(name, op, doc, tab, columns=None, creds=True, extra=None, positi
         cols = copy.deepcopy(columns) if columns else {"mappingMode": "autoMapInputData", "value": {}, "matchingColumns": [], "schema": []}
         if not cols.get("schema"):
             names = cols.get("value", {}).keys() if cols.get("mappingMode") == "defineBelow" else SCHEMAS.get(tab, [])
-            cols["schema"] = [{"id": c, "name": c} for c in names]
+            # full resource-mapper entry shape: without displayName the defineBelow value
+            # map silently resolves no columns and the append degrades to autoMap of input
+            cols["schema"] = [{"id": c, "name": c, "displayName": c, "display": True, "type": "string",
+                               "required": False, "canBeUsedToMatch": True, "removeValue": False} for c in names]
         p["columns"] = cols
     if extra:
         p.update(extra)

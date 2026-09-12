@@ -33,27 +33,63 @@
      "schema": [
       {
        "id": "symbol",
-       "name": "symbol"
+       "name": "symbol",
+       "displayName": "symbol",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "lot_id",
-       "name": "lot_id"
+       "name": "lot_id",
+       "displayName": "lot_id",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "shares",
-       "name": "shares"
+       "name": "shares",
+       "displayName": "shares",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "avg_price",
-       "name": "avg_price"
+       "name": "avg_price",
+       "displayName": "avg_price",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "max_trade_value",
-       "name": "max_trade_value"
+       "name": "max_trade_value",
+       "displayName": "max_trade_value",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "lot_size",
-       "name": "lot_size"
+       "name": "lot_size",
+       "displayName": "lot_size",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       }
      ]
     }
@@ -94,7 +130,13 @@
      "schema": [
       {
        "id": "amount",
-       "name": "amount"
+       "name": "amount",
+       "displayName": "amount",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       }
      ]
     }
@@ -135,11 +177,23 @@
      "schema": [
       {
        "id": "key",
-       "name": "key"
+       "name": "key",
+       "displayName": "key",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "value",
-       "name": "value"
+       "name": "value",
+       "displayName": "value",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       }
      ]
     }
@@ -180,15 +234,33 @@
      "schema": [
       {
        "id": "symbol",
-       "name": "symbol"
+       "name": "symbol",
+       "displayName": "symbol",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "max_trade_value",
-       "name": "max_trade_value"
+       "name": "max_trade_value",
+       "displayName": "max_trade_value",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "lot_size",
-       "name": "lot_size"
+       "name": "lot_size",
+       "displayName": "lot_size",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       }
      ]
     }
@@ -229,39 +301,93 @@
      "schema": [
       {
        "id": "run_ts",
-       "name": "run_ts"
+       "name": "run_ts",
+       "displayName": "run_ts",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "symbol",
-       "name": "symbol"
+       "name": "symbol",
+       "displayName": "symbol",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "action",
-       "name": "action"
+       "name": "action",
+       "displayName": "action",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "quantity",
-       "name": "quantity"
+       "name": "quantity",
+       "displayName": "quantity",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "limit_price",
-       "name": "limit_price"
+       "name": "limit_price",
+       "displayName": "limit_price",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "current_price",
-       "name": "current_price"
+       "name": "current_price",
+       "displayName": "current_price",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "change_pct",
-       "name": "change_pct"
+       "name": "change_pct",
+       "displayName": "change_pct",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "trade_value",
-       "name": "trade_value"
+       "name": "trade_value",
+       "displayName": "trade_value",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "reason",
-       "name": "reason"
+       "name": "reason",
+       "displayName": "reason",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       }
      ]
     }
@@ -302,35 +428,83 @@
      "schema": [
       {
        "id": "ts",
-       "name": "ts"
+       "name": "ts",
+       "displayName": "ts",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "symbol",
-       "name": "symbol"
+       "name": "symbol",
+       "displayName": "symbol",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "side",
-       "name": "side"
+       "name": "side",
+       "displayName": "side",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "quantity",
-       "name": "quantity"
+       "name": "quantity",
+       "displayName": "quantity",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "price",
-       "name": "price"
+       "name": "price",
+       "displayName": "price",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "value",
-       "name": "value"
+       "name": "value",
+       "displayName": "value",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "cash_after",
-       "name": "cash_after"
+       "name": "cash_after",
+       "displayName": "cash_after",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "note",
-       "name": "note"
+       "name": "note",
+       "displayName": "note",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       }
      ]
     }
@@ -371,11 +545,23 @@
      "schema": [
       {
        "id": "key",
-       "name": "key"
+       "name": "key",
+       "displayName": "key",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "value",
-       "name": "value"
+       "name": "value",
+       "displayName": "value",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       }
      ]
     }
@@ -416,23 +602,53 @@
      "schema": [
       {
        "id": "ts",
-       "name": "ts"
+       "name": "ts",
+       "displayName": "ts",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "cash",
-       "name": "cash"
+       "name": "cash",
+       "displayName": "cash",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "holdings_value",
-       "name": "holdings_value"
+       "name": "holdings_value",
+       "displayName": "holdings_value",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "portfolio_value",
-       "name": "portfolio_value"
+       "name": "portfolio_value",
+       "displayName": "portfolio_value",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "notes",
-       "name": "notes"
+       "name": "notes",
+       "displayName": "notes",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       }
      ]
     }
@@ -486,11 +702,23 @@
      "schema": [
       {
        "id": "key",
-       "name": "key"
+       "name": "key",
+       "displayName": "key",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "value",
-       "name": "value"
+       "name": "value",
+       "displayName": "value",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       }
      ]
     }
@@ -544,15 +772,33 @@
      "schema": [
       {
        "id": "symbol",
-       "name": "symbol"
+       "name": "symbol",
+       "displayName": "symbol",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "max_trade_value",
-       "name": "max_trade_value"
+       "name": "max_trade_value",
+       "displayName": "max_trade_value",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "lot_size",
-       "name": "lot_size"
+       "name": "lot_size",
+       "displayName": "lot_size",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       }
      ]
     }
@@ -595,7 +841,13 @@
      "schema": [
       {
        "id": "amount",
-       "name": "amount"
+       "name": "amount",
+       "displayName": "amount",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       }
      ]
     }
@@ -649,11 +901,23 @@
      "schema": [
       {
        "id": "key",
-       "name": "key"
+       "name": "key",
+       "displayName": "key",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       },
       {
        "id": "value",
-       "name": "value"
+       "name": "value",
+       "displayName": "value",
+       "display": true,
+       "type": "string",
+       "required": false,
+       "canBeUsedToMatch": true,
+       "removeValue": false
       }
      ]
     }
