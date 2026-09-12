@@ -300,14 +300,15 @@ cl_h = sheets_node("Clear Holding", "clear", copy.deepcopy(DOC), "Holding"); cl_
 emit_h = code_node("Emit Lot Rows", "const l=$('Apply Trades').first().json.lots||[];\nreturn l.map(x=>({json:x}));", [1600, 380])
 ap_h = sheets_node("Append Holding", "append", copy.deepcopy(DOC), "Holding", {"mappingMode": "autoMapInputData", "value": {}, "matchingColumns": [], "schema": []}); ap_h["position"] = [1820, 380]
 cl_c = sheets_node("Clear Cash", "clear", copy.deepcopy(DOC), "Cash"); cl_c["position"] = [2040, 380]
-ap_c = sheets_node("Append Cash", "append", copy.deepcopy(DOC), "Cash", {"mappingMode": "defineBelow", "value": {"amount": "={{ $('Apply Trades').first().json.cash }}"}, "matchingColumns": [], "schema": []}); ap_c["position"] = [2260, 380]
-up_s = sheets_node("Update State", "appendOrUpdate", copy.deepcopy(DOC), "State", {"mappingMode": "defineBelow", "value": {"key": "last_row", "value": "={{ $('Apply Trades').first().json.last_row }}"}, "matchingColumns": ["key"], "schema": []}); up_s["position"] = [2480, 380]
-tr["nodes"] += [emit_t, wt, cl_h, emit_h, ap_h, cl_c, ap_c, up_s]
+emit_c = code_node("Cash Row", "return [{json:{amount: String($('Apply Trades').first().json.cash)}}];", [2260, 260])
+ap_c = sheets_node("Append Cash", "append", copy.deepcopy(DOC), "Cash", {"mappingMode": "autoMapInputData", "value": {}, "matchingColumns": [], "schema": []}); ap_c["position"] = [2480, 260]
+up_s = sheets_node("Update State", "appendOrUpdate", copy.deepcopy(DOC), "State", {"mappingMode": "defineBelow", "value": {"key": "last_row", "value": "={{ $('Apply Trades').first().json.last_row }}"}, "matchingColumns": ["key"], "schema": []}); up_s["position"] = [2700, 380]
+tr["nodes"] += [emit_t, wt, cl_h, emit_h, ap_h, cl_c, emit_c, ap_c, up_s]
 connect(tr, "Read Holding", ["Apply Trades"])
 connect(tr, "Apply Trades", ["Emit Trade Rows", "Clear Holding"])
 connect(tr, "Emit Trade Rows", ["Append Trades"])
 connect(tr, "Clear Holding", ["Emit Lot Rows"]); connect(tr, "Emit Lot Rows", ["Append Holding"])
-connect(tr, "Append Holding", ["Clear Cash"]); connect(tr, "Clear Cash", ["Append Cash"]); connect(tr, "Append Cash", ["Update State"])
+connect(tr, "Append Holding", ["Clear Cash"]); connect(tr, "Clear Cash", ["Cash Row"]); connect(tr, "Cash Row", ["Append Cash"]); connect(tr, "Append Cash", ["Update State"])
 tr["id"] = "psxtrader001"
 json.dump(tr, open(os.path.join(HERE, "psx_trader.json"), "w"), indent=1)
 print("psx_trader.json:", len(tr["nodes"]), "nodes")
@@ -351,8 +352,10 @@ hv=Math.round(hv*100)/100;
 return [{json:{mode,cash,holdings_value:hv,portfolio_value:Math.round((cash+hv)*100)/100,lots,valuations,market_found:Object.keys(market).length}}];""", [880, 400])
 val["executeOnce"] = True
 eod["nodes"].append(val); connect(eod, "Join Data", ["Value Portfolio"])
-ap_eq = sheets_node("Append Equity", "append", copy.deepcopy(DOC), "Equity", {"mappingMode": "defineBelow", "value": {"ts": "={{ $now.toISO() }}", "cash": "={{ $('Value Portfolio').first().json.cash }}", "holdings_value": "={{ $('Value Portfolio').first().json.holdings_value }}", "portfolio_value": "={{ $('Value Portfolio').first().json.portfolio_value }}", "notes": "={{ $('Value Portfolio').first().json.mode }}"}}); ap_eq["position"] = [1100, 200]
-eod["nodes"].append(ap_eq); connect(eod, "Value Portfolio", ["Append Equity"])
+eq_row = code_node("Equity Row", "const v=$('Value Portfolio').first().json;\nreturn [{json:{ts:new Date().toISOString(),cash:v.cash,holdings_value:v.holdings_value,portfolio_value:v.portfolio_value,notes:v.mode}}];", [1100, 140])
+eod["nodes"].append(eq_row)
+ap_eq = sheets_node("Append Equity", "append", copy.deepcopy(DOC), "Equity", {"mappingMode": "autoMapInputData", "value": {}, "matchingColumns": [], "schema": []}); ap_eq["position"] = [1320, 140]
+eod["nodes"].append(ap_eq); connect(eod, "Value Portfolio", ["Equity Row"]); connect(eod, "Equity Row", ["Append Equity"])
 fin = code_node("Build Liquidation", """const v=$('Value Portfolio').first().json;
 if (v.mode!=='final') return [];
 const cash=v.cash; const trades=[]; const proceeds=[];
@@ -361,14 +364,20 @@ let c=cash; for (const p of proceeds){c+=p;}
 const fixed=trades.map(t=>({...t,cash_after:Math.round(c*100)/100}));
 return [{json:{trades:fixed,final_cash:Math.round(c*100)/100,final_value:Math.round(c*100)/100}}];""", [1100, 500])
 eod["nodes"].append(fin)
+ftr = code_node("Emit Final Trades", "return (($('Build Liquidation').first().json||{}).trades||[]).map(t=>({json:t}));", [1100, 640])
+eod["nodes"].append(ftr); connect(eod, "Build Liquidation", ["Emit Final Trades"])
 ap_tr = sheets_node("Append Final Trades", "append", copy.deepcopy(DOC), "Trades", {"mappingMode": "autoMapInputData", "value": {}, "matchingColumns": [], "schema": []}); ap_tr["position"] = [1320, 500]
-eod["nodes"].append(ap_tr); connect(eod, "Build Liquidation", ["Append Final Trades"])
+eod["nodes"].append(ap_tr); connect(eod, "Emit Final Trades", ["Append Final Trades"])
 cl_h2 = sheets_node("Clear Holding Final", "clear", copy.deepcopy(DOC), "Holding"); cl_h2["position"] = [1540, 500]
 eod["nodes"].append(cl_h2); connect(eod, "Append Final Trades", ["Clear Holding Final"])
-ap_c2 = sheets_node("Append Final Cash", "append", copy.deepcopy(DOC), "Cash", {"mappingMode": "defineBelow", "value": {"amount": "={{ $('Build Liquidation').first().json.final_cash }}"}, "matchingColumns": [], "schema": []}); ap_c2["position"] = [1760, 500]
-eod["nodes"].append(ap_c2); connect(eod, "Clear Holding Final", ["Append Final Cash"])
-ap_eq2 = sheets_node("Append Final Equity", "append", copy.deepcopy(DOC), "Equity", {"mappingMode": "defineBelow", "value": {"ts": "={{ $now.toISO() }}", "cash": "={{ $('Build Liquidation').first().json.final_cash }}", "holdings_value": "0", "portfolio_value": "={{ $('Build Liquidation').first().json.final_value }}", "notes": "FINAL"}}); ap_eq2["position"] = [1980, 500]
-eod["nodes"].append(ap_eq2); connect(eod, "Append Final Cash", ["Append Final Equity"])
+fcr = code_node("Final Cash Row", "return [{json:{amount: String($('Build Liquidation').first().json.final_cash)}}];", [1760, 640])
+eod["nodes"].append(fcr); connect(eod, "Clear Holding Final", ["Final Cash Row"])
+ap_c2 = sheets_node("Append Final Cash", "append", copy.deepcopy(DOC), "Cash", {"mappingMode": "autoMapInputData", "value": {}, "matchingColumns": [], "schema": []}); ap_c2["position"] = [1980, 640]
+eod["nodes"].append(ap_c2); connect(eod, "Final Cash Row", ["Append Final Cash"])
+feq_row = code_node("Final Equity Row", "const v=$('Build Liquidation').first().json;\nreturn [{json:{ts:new Date().toISOString(),cash:v.final_cash,holdings_value:0,portfolio_value:v.final_value,notes:'FINAL'}}];", [2200, 640])
+eod["nodes"].append(feq_row); connect(eod, "Append Final Cash", ["Final Equity Row"])
+ap_eq2 = sheets_node("Append Final Equity", "append", copy.deepcopy(DOC), "Equity", {"mappingMode": "autoMapInputData", "value": {}, "matchingColumns": [], "schema": []}); ap_eq2["position"] = [2420, 640]
+eod["nodes"].append(ap_eq2); connect(eod, "Final Equity Row", ["Append Final Equity"])
 done = sheets_node("Mark Done", "appendOrUpdate", copy.deepcopy(DOC), "State", {"mappingMode": "defineBelow", "value": {"key": "status", "value": "DONE"}, "matchingColumns": ["key"], "schema": []}); done["position"] = [2200, 500]
 eod["nodes"].append(done); connect(eod, "Append Final Equity", ["Mark Done"])
 eod["id"] = "psxeod00001"
@@ -399,8 +408,10 @@ wr = code_node("Watchlist Rows", "const syms=" + json.dumps(WATCHLIST) + ";\nret
 wr["position"] = [280 + 120 * len(rst["nodes"]), 650]; rst["nodes"].append(wr); connect(rst, prev, ["Watchlist Rows"])
 n = sheets_node("Seed Watchlist", "append", copy.deepcopy(DOC), "Watchlist", {"mappingMode": "autoMapInputData", "value": {}, "matchingColumns": [], "schema": []})
 n["position"] = [280 + 120 * len(rst["nodes"]), 650]; rst["nodes"].append(n); connect(rst, "Watchlist Rows", ["Seed Watchlist"]); prev = "Seed Watchlist"
-n = sheets_node("Seed Cash", "append", copy.deepcopy(DOC), "Cash", {"mappingMode": "defineBelow", "value": {"amount": "500000"}, "matchingColumns": [], "schema": []})
-n["position"] = [280 + 120 * len(rst["nodes"]), 800]; rst["nodes"].append(n); connect(rst, prev, ["Seed Cash"]); prev = "Seed Cash"
+cr = code_node("Cash Row", "return [{json:{amount:'500000'}}];")
+cr["position"] = [280 + 120 * len(rst["nodes"]), 800]; rst["nodes"].append(cr); connect(rst, prev, ["Cash Row"])
+n = sheets_node("Seed Cash", "append", copy.deepcopy(DOC), "Cash", {"mappingMode": "autoMapInputData", "value": {}, "matchingColumns": [], "schema": []})
+n["position"] = [280 + 120 * len(rst["nodes"]), 800]; rst["nodes"].append(n); connect(rst, "Cash Row", ["Seed Cash"]); prev = "Seed Cash"
 st = code_node("State Rows", "return [{json:{key:'end_date',value:'2026-09-19T15:30:00+05:00'}},{json:{key:'last_row',value:'1'}},{json:{key:'status',value:'RUNNING'}},{json:{key:'start_value',value:'500000'}},{json:{key:'started',value:'2026-09-12'}}];")
 st["position"] = [280 + 120 * len(rst["nodes"]), 950]; rst["nodes"].append(st); connect(rst, prev, ["State Rows"])
 n = sheets_node("Seed State", "append", copy.deepcopy(DOC), "State", {"mappingMode": "autoMapInputData", "value": {}, "matchingColumns": [], "schema": []})

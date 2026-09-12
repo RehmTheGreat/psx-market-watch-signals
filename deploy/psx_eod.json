@@ -190,6 +190,19 @@
   },
   {
    "parameters": {
+    "jsCode": "const v=$('Value Portfolio').first().json;\nreturn [{json:{ts:new Date().toISOString(),cash:v.cash,holdings_value:v.holdings_value,portfolio_value:v.portfolio_value,notes:v.mode}}];"
+   },
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "id": "equity-row",
+   "name": "Equity Row",
+   "position": [
+    1100,
+    140
+   ]
+  },
+  {
+   "parameters": {
     "operation": "append",
     "documentId": {
      "__rl": true,
@@ -203,14 +216,9 @@
     },
     "options": {},
     "columns": {
-     "mappingMode": "defineBelow",
-     "value": {
-      "ts": "={{ $now.toISO() }}",
-      "cash": "={{ $('Value Portfolio').first().json.cash }}",
-      "holdings_value": "={{ $('Value Portfolio').first().json.holdings_value }}",
-      "portfolio_value": "={{ $('Value Portfolio').first().json.portfolio_value }}",
-      "notes": "={{ $('Value Portfolio').first().json.mode }}"
-     },
+     "mappingMode": "autoMapInputData",
+     "value": {},
+     "matchingColumns": [],
      "schema": [
       {
        "id": "ts",
@@ -270,8 +278,8 @@
    "id": "append-equity",
    "name": "Append Equity",
    "position": [
-    1100,
-    200
+    1320,
+    140
    ],
    "credentials": {
     "googleSheetsOAuth2Api": {
@@ -291,6 +299,19 @@
    "position": [
     1100,
     500
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "return (($('Build Liquidation').first().json||{}).trades||[]).map(t=>({json:t}));"
+   },
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "id": "emit-final-trades",
+   "name": "Emit Final Trades",
+   "position": [
+    1100,
+    640
    ]
   },
   {
@@ -509,6 +530,19 @@
   },
   {
    "parameters": {
+    "jsCode": "return [{json:{amount: String($('Build Liquidation').first().json.final_cash)}}];"
+   },
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "id": "final-cash-row",
+   "name": "Final Cash Row",
+   "position": [
+    1760,
+    640
+   ]
+  },
+  {
+   "parameters": {
     "operation": "append",
     "documentId": {
      "__rl": true,
@@ -522,10 +556,8 @@
     },
     "options": {},
     "columns": {
-     "mappingMode": "defineBelow",
-     "value": {
-      "amount": "={{ $('Build Liquidation').first().json.final_cash }}"
-     },
+     "mappingMode": "autoMapInputData",
+     "value": {},
      "matchingColumns": [],
      "schema": [
       {
@@ -546,8 +578,8 @@
    "id": "append-final-cash",
    "name": "Append Final Cash",
    "position": [
-    1760,
-    500
+    1980,
+    640
    ],
    "credentials": {
     "googleSheetsOAuth2Api": {
@@ -555,6 +587,19 @@
      "name": "Sheets for abdul.71433@iqra.edu.pk"
     }
    }
+  },
+  {
+   "parameters": {
+    "jsCode": "const v=$('Build Liquidation').first().json;\nreturn [{json:{ts:new Date().toISOString(),cash:v.final_cash,holdings_value:0,portfolio_value:v.final_value,notes:'FINAL'}}];"
+   },
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "id": "final-equity-row",
+   "name": "Final Equity Row",
+   "position": [
+    2200,
+    640
+   ]
   },
   {
    "parameters": {
@@ -571,14 +616,9 @@
     },
     "options": {},
     "columns": {
-     "mappingMode": "defineBelow",
-     "value": {
-      "ts": "={{ $now.toISO() }}",
-      "cash": "={{ $('Build Liquidation').first().json.final_cash }}",
-      "holdings_value": "0",
-      "portfolio_value": "={{ $('Build Liquidation').first().json.final_value }}",
-      "notes": "FINAL"
-     },
+     "mappingMode": "autoMapInputData",
+     "value": {},
+     "matchingColumns": [],
      "schema": [
       {
        "id": "ts",
@@ -638,8 +678,8 @@
    "id": "append-final-equity",
    "name": "Append Final Equity",
    "position": [
-    1980,
-    500
+    2420,
+    640
    ],
    "credentials": {
     "googleSheetsOAuth2Api": {
@@ -814,6 +854,17 @@
    "main": [
     [
      {
+      "node": "Equity Row",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Equity Row": {
+   "main": [
+    [
+     {
       "node": "Append Equity",
       "type": "main",
       "index": 0
@@ -822,6 +873,17 @@
    ]
   },
   "Build Liquidation": {
+   "main": [
+    [
+     {
+      "node": "Emit Final Trades",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Emit Final Trades": {
    "main": [
     [
      {
@@ -847,6 +909,17 @@
    "main": [
     [
      {
+      "node": "Final Cash Row",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Final Cash Row": {
+   "main": [
+    [
+     {
       "node": "Append Final Cash",
       "type": "main",
       "index": 0
@@ -855,6 +928,17 @@
    ]
   },
   "Append Final Cash": {
+   "main": [
+    [
+     {
+      "node": "Final Equity Row",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Final Equity Row": {
    "main": [
     [
      {

@@ -611,6 +611,19 @@
   },
   {
    "parameters": {
+    "jsCode": "return [{json:{amount: String($('Apply Trades').first().json.cash)}}];"
+   },
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "id": "cash-row",
+   "name": "Cash Row",
+   "position": [
+    2260,
+    260
+   ]
+  },
+  {
+   "parameters": {
     "operation": "append",
     "documentId": {
      "__rl": true,
@@ -624,10 +637,8 @@
     },
     "options": {},
     "columns": {
-     "mappingMode": "defineBelow",
-     "value": {
-      "amount": "={{ $('Apply Trades').first().json.cash }}"
-     },
+     "mappingMode": "autoMapInputData",
+     "value": {},
      "matchingColumns": [],
      "schema": [
       {
@@ -648,8 +659,8 @@
    "id": "append-cash",
    "name": "Append Cash",
    "position": [
-    2260,
-    380
+    2480,
+    260
    ],
    "credentials": {
     "googleSheetsOAuth2Api": {
@@ -710,7 +721,7 @@
    "id": "update-state",
    "name": "Update State",
    "position": [
-    2480,
+    2700,
     380
    ],
    "credentials": {
@@ -892,6 +903,17 @@
    ]
   },
   "Clear Cash": {
+   "main": [
+    [
+     {
+      "node": "Cash Row",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Cash Row": {
    "main": [
     [
      {
