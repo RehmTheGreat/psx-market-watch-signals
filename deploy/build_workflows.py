@@ -136,11 +136,12 @@ for n in repo["nodes"]:
         m.pop("credentials", None)
     if m["name"] == "Build Signals":
         # Translate the OpenAI Responses request into Groq's chat-completions contract.
-        # Model is a Settings-tab value (groq_model); default openai/gpt-oss-120b because
-        # pc's asked-for llama-70b-instruct is decommissioned on Groq (closest 70B-class free model).
+        # Model is a Settings-tab value (groq_model); default qwen/qwen3.8-27b per pc
+        # (2026-09-13: "use qwen 3.8 27b, intelligence matters more than parameters";
+        # llama-70b-instruct is decommissioned on Groq).
         c = m["parameters"]["jsCode"]
         reps = [
-            ('settings.openai_model || "gpt-4o-mini"', 'settings.groq_model || "openai/gpt-oss-120b"'),
+            ('settings.openai_model || "gpt-4o-mini"', 'settings.groq_model || "qwen/qwen3.8-27b"'),
             ('  max_output_tokens: 2500,\n  instructions:\n',
              '  max_completion_tokens: 2500,\n'
              '  response_format: { type: "json_object" },\n'
