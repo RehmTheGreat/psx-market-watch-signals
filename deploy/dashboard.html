@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PSX Virtual Trading</title>
+<style>
+  :root {
+    --bg: #0b0f16; --card: #121826; --card2: #0e141f; --line: #1f2937;
+    --txt: #e5edf7; --dim: #8b98ab; --green: #34d399; --red: #f87171;
+    --amber: #fbbf24; --blue: #60a5fa; --accent: #f5c542;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--txt); font: 14px/1.5 "Segoe UI", system-ui, -apple-system, sans-serif; padding: 24px 20px 60px; }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 20px; }
+  h1 { font-size: 21px; font-weight: 650; letter-spacing: .2px; }
+  h1 .sig { color: var(--accent); }
+  .pill { padding: 3px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; border: 1px solid var(--line); background: var(--card); color: var(--dim); }
+  .pill.run { color: var(--green); border-color: rgba(52,211,153,.4); }
+  .pill.done { color: var(--blue); border-color: rgba(96,165,250,.4); }
+  .pill .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: currentColor; margin-right: 6px; animation: pulse 1.6s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .35 } }
+  .meta { margin-left: auto; display: flex; align-items: center; gap: 10px; color: var(--dim); font-size: 12px; }
+  button { background: var(--card); color: var(--txt); border: 1px solid var(--line); border-radius: 8px; padding: 6px 14px; font-size: 12.5px; cursor: pointer; }
+  button:hover { border-color: var(--accent); }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 14px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+  .stat .label { color: var(--dim); font-size: 12px; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 6px; }
+  .stat .value { font-size: 23px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .sub { font-size: 12px; margin-top: 4px; color: var(--dim); }
+  .up { color: var(--green) } .down { color: var(--red) } .flat { color: var(--dim) }
+  .grid2 { display: grid; grid-template-columns: 3fr 2fr; gap: 14px; }
+  @media (max-width: 900px) { .grid2 { grid-template-columns: 1fr } }
+  .card h2 { font-size: 13px; font-weight: 600; color: var(--dim); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 12px; }
+  #chartbox { position: relative; }
+  .empty { color: var(--dim); font-size: 13px; padding: 26px 8px; text-align: center; border: 1px dashed var(--line); border-radius: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; color: var(--dim); font-weight: 500; font-size: 11.5px; text-transform: uppercase; letter-spacing: .6px; padding: 7px 8px; border-bottom: 1px solid var(--line); }
+  td { padding: 7px 8px; border-bottom: 1px solid rgba(31,41,55,.55); font-variant-numeric: tabular-nums; }
+  tr:last-child td { border-bottom: none; }
+  td.num, th.num { text-align: right; }
+  .badge { display: inline-block; padding: 1px 9px; border-radius: 6px; font-size: 11.5px; font-weight: 700; }
+  .b-buy { background: rgba(52,211,153,.14); color: var(--green); }
+  .b-sell { background: rgba(248,113,113,.14); color: var(--red); }
+  .b-hold { background: rgba(139,152,171,.14); color: var(--dim); }
+  .b-nodata { background: rgba(251,191,36,.14); color: var(--amber); }
+  .scroll { max-height: 340px; overflow-y: auto; }
+  .scroll::-webkit-scrollbar { width: 8px } .scroll::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px }
+  footer { margin-top: 22px; color: var(--dim); font-size: 12px; text-align: center; }
+  .tip { position: absolute; pointer-events: none; background: #050810; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 12px; white-space: nowrap; display: none; z-index: 5; box-shadow: 0 6px 18px rgba(0,0,0,.5); }
+  .err { color: var(--red); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1><span class="sig">PSX</span> Virtual Trading</h1>
+    <span class="pill" id="statusPill"><span class="dot"></span><span id="statusTxt">…</span></span>
+    <span class="pill" id="countdown"></span>
+    <div class="meta">
+      <span id="updated"></span>
+      <button onclick="load(true)">Refresh</button>
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="card stat"><div class="label">Portfolio Value</div><div class="value" id="pv">—</div><div class="sub" id="pvSub"></div></div>
+    <div class="card stat"><div class="label">Total Return</div><div class="value" id="ret">—</div><div class="sub" id="retSub"></div></div>
+    <div class="card stat"><div class="label">Cash</div><div class="value" id="cash">—</div><div class="sub" id="cashSub"></div></div>
+    <div class="card stat"><div class="label">Holdings</div><div class="value" id="hv">—</div><div class="sub" id="hvSub"></div></div>
+  </div>
+
+  <div class="card" id="chartcard" style="margin-bottom:14px">
+    <h2>Equity Curve</h2>
+    <div id="chartbox">
+      <div class="empty" id="chartEmpty">No EOD valuations yet — the curve starts after the first trading day (EOD 15:35 PKT).</div>
+      <svg id="chart" width="100%" height="240" style="display:none"></svg>
+      <div class="tip" id="tip"></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h2>Holdings</h2>
+      <div id="holdWrap"><div class="empty">No open positions yet.</div></div>
+    </div>
+    <div class="card">
+      <h2>Signals <span style="float:right;text-transform:none;letter-spacing:0" id="sigCount"></span></h2>
+      <div class="scroll" id="sigWrap"><div class="empty">No signals yet — first run Monday 09:00 PKT.</div></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h2>Trades <span style="float:right;text-transform:none;letter-spacing:0" id="tradeCount"></span></h2>
+    <div class="scroll" id="tradeWrap"><div class="empty">No trades yet.</div></div>
+  </div>
+
+  <footer>PSX Market Watch Signals · virtual trading experiment · data: Google Sheets via n8n · auto-refresh 60s</footer>
+</div>
+
+<script>
+const API = "psx-virtual-dashboard-data";
+const fmtP = n => n == null || isNaN(n) ? "—" : "PKR " + Number(n).toLocaleString("en-PK", { maximumFractionDigits: 0 });
+const fmtN = (n, d = 2) => n == null || isNaN(n) ? "—" : Number(n).toLocaleString("en-PK", { maximumFractionDigits: d, minimumFractionDigits: 0 });
+const pct = n => n == null || isNaN(n) ? "—" : (n >= 0 ? "+" : "") + n.toFixed(2) + "%";
+const cls = n => n > 0.0001 ? "up" : n < -0.0001 ? "down" : "flat";
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const ago = ts => { if (!ts) return ""; const s = (Date.now() - new Date(ts).getTime()) / 1000; if (isNaN(s)) return "";
+  if (s < 90) return "just now"; if (s < 3600) return Math.round(s / 60) + "m ago"; if (s < 86400) return Math.round(s / 3600) + "h ago"; return Math.round(s / 86400) + "d ago"; };
+
+function stateMap(state) { const m = {}; (state || []).forEach(r => m[r.key] = r.value); return m; }
+function lastPriceMap(signals) {
+  const m = {};
+  for (let i = (signals || []).length - 1; i >= 0; i--) {
+    const s = signals[i];
+    if (s.symbol && s.current_price != null && !(s.symbol in m)) m[s.symbol] = s.current_price;
+  }
+  return m;
+}
+
+function render(d) {
+  const st = stateMap(d.state);
+  const start = Number(st.start_value) || 500000;
+  const eq = (d.equity || []).slice().sort((a, b) => new Date(a.ts) - new Date(b.ts));
+  const cashRows = d.cash || [];
+  const lastEq = eq.length ? eq[eq.length - 1] : null;
+  const cash = lastEq ? Number(lastEq.cash) : (cashRows.length ? Number(cashRows[cashRows.length - 1].amount) : null);
+  const hv = lastEq ? Number(lastEq.holdings_value) : null;
+  const pv = lastEq ? Number(lastEq.portfolio_value) : (cash != null ? cash : null);
+
+  document.getElementById("pv").textContent = pv != null ? fmtP(pv) : "—";
+  document.getElementById("pvSub").textContent = eq.length ? "as of " + new Date(lastEq.ts).toLocaleString() : "pre-market";
+  if (pv != null) {
+    const rp = (pv - start) / start * 100, rd = pv - start;
+    const rEl = document.getElementById("ret");
+    rEl.innerHTML = '<span class="' + cls(rd) + '">' + pct(rp) + '</span>';
+    document.getElementById("retSub").innerHTML = '<span class="' + cls(rd) + '">' + (rd >= 0 ? "+" : "−") + fmtP(Math.abs(rd)).slice(4) + ' vs ' + fmtP(start).slice(4) + ' start</span>';
+  }
+  document.getElementById("cash").textContent = cash != null ? fmtP(cash) : "—";
+  document.getElementById("cashSub").textContent = cash != null ? pct(start ? (cash - start) / start * 100 : null) + " of start" : "";
+  document.getElementById("hv").textContent = hv != null ? fmtP(hv) : (d.holding && d.holding.length ? "—" : "PKR 0");
+  document.getElementById("hvSub").textContent = (d.holding || []).length + " open position" + ((d.holding || []).length === 1 ? "" : "s");
+
+  const pill = document.getElementById("statusPill"), stx = document.getElementById("statusTxt");
+  const status = String(st.status || "RUNNING").toUpperCase();
+  stx.textContent = status;
+  pill.className = "pill " + (status === "DONE" ? "done" : "run");
+  const end = st.end_date ? new Date(st.end_date) : null;
+  const cd = document.getElementById("countdown");
+  if (status === "DONE") { cd.textContent = "Experiment complete"; cd.className = "pill done"; }
+  else if (end && !isNaN(end)) {
+    let s = Math.max(0, Math.floor((end - Date.now()) / 1000));
+    const dd = Math.floor(s / 86400), hh = Math.floor(s % 86400 / 3600), mm = Math.floor(s % 3600 / 60);
+    cd.textContent = "ends " + end.toLocaleDateString() + " · " + (dd ? dd + "d " : "") + hh + "h " + mm + "m left";
+  } else cd.style.display = "none";
+
+  drawChart(eq, start);
+
+  const lp = lastPriceMap(d.signals);
+  const hold = d.holding || [];
+  const hw = document.getElementById("holdWrap");
+  if (hold.length) {
+    let inv = 0; hold.forEach(h => inv += Number(h.shares || 0) * Number(h.avg_price || 0));
+    let unreal = hv != null ? hv - inv : null;
+    let rows = hold.map(h => {
+      const q = Number(h.shares || 0), ap = Number(h.avg_price || 0), last = lp[h.symbol];
+      const u = last != null ? (last - ap) * q : null;
+      return "<tr><td><b>" + esc(h.symbol) + "</b></td><td class='num'>" + fmtN(q, 0) + "</td><td class='num'>" + fmtN(ap) +
+        "</td><td class='num'>" + fmtN(last) + "</td><td class='num'>" + fmtP(q * ap) + "</td><td class='num'><span class='" + cls(u) + "'>" +
+        (u == null ? "—" : (u >= 0 ? "+" : "−") + fmtP(Math.abs(u)).slice(4) + " (" + pct(ap ? u / (q * ap) * 100 : null) + ")") + "</span></td></tr>";
+    }).join("");
+    hw.innerHTML = "<table><tr><th>Symbol</th><th class='num'>Shares</th><th class='num'>Avg Cost</th><th class='num'>Last</th><th class='num'>Invested</th><th class='num'>Unrealized</th></tr>" + rows + "</table>" +
+      (unreal != null ? "<div style='margin-top:10px;font-size:12px;color:var(--dim)'>Invested " + fmtP(inv) + " · unrealized <span class='" + cls(unreal) + "'>" + (unreal >= 0 ? "+" : "−") + fmtP(Math.abs(unreal)).slice(4) + "</span> (last marked " + (lastEq ? new Date(lastEq.ts).toLocaleString() : "—") + ")</div>" : "");
+  } else hw.innerHTML = "<div class='empty'>No open positions yet.</div>";
+
+  const sig = (d.signals || []).slice().reverse();
+  document.getElementById("sigCount").textContent = sig.length ? "(" + (d.signals || []).length + " total)" : "";
+  const sw = document.getElementById("sigWrap");
+  if (sig.length) {
+    sw.innerHTML = "<table><tr><th>When</th><th>Symbol</th><th>Action</th><th class='num'>Price</th><th class='num'>Chg%</th></tr>" +
+      sig.slice(0, 40).map(s => {
+        const b = s.action === "BUY" ? "b-buy" : s.action === "SELL" ? "b-sell" : s.action === "NO_DATA" ? "b-nodata" : "b-hold";
+        const cp = Number(s.change_pct);
+        return "<tr><td title='" + esc(s.run_ts) + "'>" + ago(s.run_ts) + "</td><td><b>" + esc(s.symbol) + "</b></td><td><span class='badge " + b + "'>" + esc(s.action) + "</span></td><td class='num'>" + fmtN(s.current_price) + "</td><td class='num'><span class='" + cls(cp) + "'>" + pct(cp) + "</span></td></tr>";
+      }).join("") + "</table>";
+  } else sw.innerHTML = "<div class='empty'>No signals yet — first run Monday 09:00 PKT.</div>";
+
+  const tr = (d.trades || []).slice().reverse();
+  document.getElementById("tradeCount").textContent = tr.length ? "(" + tr.length + " total)" : "";
+  const tw = document.getElementById("tradeWrap");
+  if (tr.length) {
+    tw.innerHTML = "<table><tr><th>When</th><th>Symbol</th><th>Side</th><th class='num'>Qty</th><th class='num'>Price</th><th class='num'>Value</th><th class='num'>Cash After</th></tr>" +
+      tr.slice(0, 60).map(t => "<tr><td title='" + esc(t.ts) + "'>" + ago(t.ts) + "</td><td><b>" + esc(t.symbol) + "</b></td><td><span class='badge " + (t.side === "BUY" ? "b-buy" : "b-sell") + "'>" + esc(t.side) + "</span></td><td class='num'>" + fmtN(t.quantity, 0) + "</td><td class='num'>" + fmtN(t.price) + "</td><td class='num'>" + fmtP(t.value) + "</td><td class='num'>" + fmtP(t.cash_after) + "</td></tr>").join("") + "</table>";
+  } else tw.innerHTML = "<div class='empty'>No trades yet.</div>";
+}
+
+function drawChart(eq, start) {
+  const svg = document.getElementById("chart"), empty = document.getElementById("chartEmpty");
+  if (eq.length < 1) { svg.style.display = "none"; empty.style.display = "block"; return; }
+  svg.style.display = "block"; empty.style.display = "none";
+  const W = svg.clientWidth || 900, H = 240, PL = 64, PR = 14, PT = 14, PB = 26;
+  const pts = eq.map(e => ({ t: new Date(e.ts), v: Number(e.portfolio_value) }));
+  let lo = Math.min(...pts.map(p => p.v), start), hi = Math.max(...pts.map(p => p.v), start);
+  if (hi - lo < 1) { hi += 500; lo -= 500; }
+  const pad = (hi - lo) * 0.08; lo -= pad; hi += pad;
+  const X = i => PL + (pts.length === 1 ? (W - PL - PR) / 2 : i * (W - PL - PR) / (pts.length - 1));
+  const Y = v => PT + (H - PT - PB) * (1 - (v - lo) / (hi - lo));
+  let g = "";
+  for (let k = 0; k <= 4; k++) {
+    const v = lo + (hi - lo) * k / 4, y = Y(v);
+    g += "<line x1='" + PL + "' y1='" + y + "' x2='" + (W - PR) + "' y2='" + y + "' stroke='#1f2937' stroke-width='1'/>";
+    g += "<text x='" + (PL - 8) + "' y='" + (y + 4) + "' fill='#8b98ab' font-size='10' text-anchor='end'>" + Math.round(v / 1000) + "k</text>";
+  }
+  const yStart = Y(start);
+  g += "<line x1='" + PL + "' y1='" + yStart + "' x2='" + (W - PR) + "' y2='" + yStart + "' stroke='#f5c542' stroke-width='1' stroke-dasharray='5 4' opacity='.6'/>";
+  const line = pts.map((p, i) => (i ? "L" : "M") + X(i).toFixed(1) + " " + Y(p.v).toFixed(1)).join(" ");
+  const area = line + " L" + X(pts.length - 1).toFixed(1) + " " + (H - PB) + " L" + X(0).toFixed(1) + " " + (H - PB) + " Z";
+  g += "<defs><linearGradient id='ag' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#34d399' stop-opacity='.22'/><stop offset='1' stop-color='#34d399' stop-opacity='0'/></linearGradient></defs>";
+  g += "<path d='" + area + "' fill='url(#ag)'/>";
+  const up = pts[pts.length - 1].v >= start;
+  g += "<path d='" + line + "' fill='none' stroke='" + (up ? "#34d399" : "#f87171") + "' stroke-width='2.2' stroke-linejoin='round'/>";
+  pts.forEach((p, i) => g += "<circle cx='" + X(i).toFixed(1) + "' cy='" + Y(p.v).toFixed(1) + "' r='2.6' fill='" + (up ? "#34d399" : "#f87171") + "'/>");
+  g += "<text x='" + PL + "' y='" + (H - 8) + "' fill='#8b98ab' font-size='10'>" + pts[0].t.toLocaleDateString() + "</text>";
+  g += "<text x='" + (W - PR) + "' y='" + (H - 8) + "' fill='#8b98ab' font-size='10' text-anchor='end'>" + pts[pts.length - 1].t.toLocaleDateString() + "</text>";
+  svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+  svg.innerHTML = g;
+  const tip = document.getElementById("tip");
+  svg.onmousemove = ev => {
+    const r = svg.getBoundingClientRect();
+    const mx = (ev.clientX - r.left) * (W / r.width);
+    let bi = 0, bd = 1e9;
+    pts.forEach((p, i) => { const d2 = Math.abs(X(i) - mx); if (d2 < bd) { bd = d2; bi = i; } });
+    const p = pts[bi], dl = p.v - start;
+    tip.style.display = "block";
+    tip.innerHTML = "<b>" + p.t.toLocaleString() + "</b><br>Portfolio: " + fmtP(p.v) + "<br><span class='" + cls(dl) + "'>" + (dl >= 0 ? "+" : "−") + fmtP(Math.abs(dl)).slice(4) + " (" + pct(start ? dl / start * 100 : null) + ")</span>";
+    tip.style.left = Math.min(r.width - 170, Math.max(0, ev.clientX - r.left + 14)) + "px";
+    tip.style.top = Math.max(0, ev.clientY - r.top - 60) + "px";
+  };
+  svg.onmouseleave = () => tip.style.display = "none";
+}
+
+async function load(manual) {
+  const upd = document.getElementById("updated");
+  try {
+    const r = await fetch(API, { cache: "no-store" });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const d = await r.json();
+    render(d);
+    upd.textContent = "updated " + new Date().toLocaleTimeString();
+    upd.className = "";
+  } catch (e) {
+    upd.textContent = "data unavailable (" + e.message + ")";
+    upd.className = "err";
+    if (manual) alert("Could not load data: " + e.message);
+  }
+}
+load();
+setInterval(load, 60000);
+</script>
+</body>
+</html>

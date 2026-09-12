@@ -1,0 +1,723 @@
+{
+ "name": "PSX 4. EOD Valuation",
+ "nodes": [
+  {
+   "parameters": {
+    "rule": {
+     "interval": [
+      {
+       "field": "cronExpression",
+       "expression": "35 15 * * 1-5"
+      }
+     ]
+    }
+   },
+   "type": "n8n-nodes-base.scheduleTrigger",
+   "typeVersion": 1.2,
+   "id": "schedule-eod",
+   "name": "Schedule EOD",
+   "position": [
+    0,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "operation": "read",
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "State",
+     "mode": "name"
+    },
+    "options": {}
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "read-state",
+   "name": "Read State",
+   "position": [
+    220,
+    300
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   }
+  },
+  {
+   "parameters": {},
+   "type": "n8n-nodes-base.manualTrigger",
+   "typeVersion": 1,
+   "id": "manual-run",
+   "name": "Manual Run",
+   "position": [
+    0,
+    480
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "const state={}; for (const it of $('Read State').all()) state[it.json.key]=it.json.value;\nconst end=new Date(state.end_date||'2026-09-19T15:30:00+05:00');\nconst past=new Date()>=end;\nreturn [{json:{mode: past ? (state.status==='DONE'?'noop':'final') : 'value', state}}];"
+   },
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "id": "gate",
+   "name": "Gate",
+   "position": [
+    440,
+    300
+   ],
+   "executeOnce": true
+  },
+  {
+   "parameters": {
+    "url": "https://dps.psx.com.pk/market-watch",
+    "options": {
+     "response": {
+      "response": {
+       "neverError": true,
+       "responseFormat": "text",
+       "outputPropertyName": "body"
+      }
+     }
+    }
+   },
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.4,
+   "id": "fetch-psx",
+   "name": "Fetch PSX",
+   "position": [
+    660,
+    500
+   ],
+   "executeOnce": true,
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "operation": "read",
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Holding",
+     "mode": "name"
+    },
+    "options": {}
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "read-holding",
+   "name": "Read Holding",
+   "position": [
+    660,
+    200
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "operation": "read",
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Cash",
+     "mode": "name"
+    },
+    "options": {}
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "read-cash",
+   "name": "Read Cash",
+   "position": [
+    660,
+    680
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "mode": "append",
+    "numberInputs": 3
+   },
+   "type": "n8n-nodes-base.merge",
+   "typeVersion": 3,
+   "id": "join-data",
+   "name": "Join Data",
+   "position": [
+    880,
+    560
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "\nfunction toNumber(v,f=0){if(v===null||v===undefined)return f;const c=String(v).replace(/,/g,'').replace(/%/g,'').replace(/[^\\d.-]/g,'').trim();if(c===''||c==='-'||c==='.')return f;const n=Number(c);return Number.isFinite(n)?n:f;}\nfunction cleanHtml(v){return String(v||'').replace(/<script[\\s\\S]*?<\\/script>/gi,' ').replace(/<style[\\s\\S]*?<\\/style>/gi,' ').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/&#37;/g,'%').replace(/<[^>]+>/g,' ').replace(/\\s+/g,' ').trim();}\nfunction parseMarket(raw){const rows={};const trs=String(raw||'').match(/<tr[\\s\\S]*?<\\/tr>/gi)||[];\nfor(const tr of trs){const cells=[...tr.matchAll(/<t[dh][^>]*>([\\s\\S]*?)<\\/t[dh]>/gi)].map(m=>cleanHtml(m[1])).filter(c=>c!=='');if(cells.length<8)continue;const sym=String(cells[0]||'').trim().toUpperCase().split(/\\s+/)[0];if(!sym||sym==='SYMBOL')continue;const cur=toNumber(cells[cells.length-4],null);if(cur)rows[sym]=cur;}\nreturn rows;}\n\nconst mode=$('Gate').first().json.mode;\nconst market=parseMarket($json.body||'');\nconst cash=$('Read Cash').all().reduce((a,i)=>a+Number(i.json.amount||0),0);\nconst lots=$('Read Holding').all().map(i=>({symbol:i.json.symbol,lot_id:i.json.lot_id,shares:Number(i.json.shares||0),avg_price:Number(i.json.avg_price||0)})).filter(l=>l.shares>0);\nlet hv=0; const valuations=[];\nfor (const l of lots){const p=market[l.symbol]||l.avg_price;hv+=l.shares*p;valuations.push({symbol:l.symbol,shares:l.shares,price:p,value:Math.round(l.shares*p*100)/100});}\nhv=Math.round(hv*100)/100;\nreturn [{json:{mode,cash,holdings_value:hv,portfolio_value:Math.round((cash+hv)*100)/100,lots,valuations,market_found:Object.keys(market).length}}];"
+   },
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "id": "value-portfolio",
+   "name": "Value Portfolio",
+   "position": [
+    880,
+    400
+   ],
+   "executeOnce": true
+  },
+  {
+   "parameters": {
+    "operation": "append",
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Equity",
+     "mode": "name"
+    },
+    "options": {},
+    "columns": {
+     "mappingMode": "defineBelow",
+     "value": {
+      "ts": "={{ $now.toISO() }}",
+      "cash": "={{ $('Value Portfolio').first().json.cash }}",
+      "holdings_value": "={{ $('Value Portfolio').first().json.holdings_value }}",
+      "portfolio_value": "={{ $('Value Portfolio').first().json.portfolio_value }}",
+      "notes": "={{ $('Value Portfolio').first().json.mode }}"
+     },
+     "schema": [
+      {
+       "id": "ts",
+       "name": "ts"
+      },
+      {
+       "id": "cash",
+       "name": "cash"
+      },
+      {
+       "id": "holdings_value",
+       "name": "holdings_value"
+      },
+      {
+       "id": "portfolio_value",
+       "name": "portfolio_value"
+      },
+      {
+       "id": "notes",
+       "name": "notes"
+      }
+     ]
+    }
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "append-equity",
+   "name": "Append Equity",
+   "position": [
+    1100,
+    200
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "jsCode": "const v=$('Value Portfolio').first().json;\nif (v.mode!=='final') return [];\nconst cash=v.cash; const trades=[]; const proceeds=[];\nfor (const val of v.valuations){const value=val.value;proceeds.push(value);trades.push({ts:new Date().toISOString(),symbol:val.symbol,side:'SELL',quantity:val.shares,price:val.price,value,cash_after:0,note:'final liquidation'});}\nlet c=cash; for (const p of proceeds){c+=p;}\nconst fixed=trades.map(t=>({...t,cash_after:Math.round(c*100)/100}));\nreturn [{json:{trades:fixed,final_cash:Math.round(c*100)/100,final_value:Math.round(c*100)/100}}];"
+   },
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "id": "build-liquidation",
+   "name": "Build Liquidation",
+   "position": [
+    1100,
+    500
+   ]
+  },
+  {
+   "parameters": {
+    "operation": "append",
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Trades",
+     "mode": "name"
+    },
+    "options": {},
+    "columns": {
+     "mappingMode": "autoMapInputData",
+     "value": {},
+     "matchingColumns": [],
+     "schema": [
+      {
+       "id": "ts",
+       "name": "ts"
+      },
+      {
+       "id": "symbol",
+       "name": "symbol"
+      },
+      {
+       "id": "side",
+       "name": "side"
+      },
+      {
+       "id": "quantity",
+       "name": "quantity"
+      },
+      {
+       "id": "price",
+       "name": "price"
+      },
+      {
+       "id": "value",
+       "name": "value"
+      },
+      {
+       "id": "cash_after",
+       "name": "cash_after"
+      },
+      {
+       "id": "note",
+       "name": "note"
+      }
+     ]
+    }
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "append-final-trades",
+   "name": "Append Final Trades",
+   "position": [
+    1320,
+    500
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "operation": "clear",
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Holding",
+     "mode": "name"
+    },
+    "options": {},
+    "columns": {
+     "mappingMode": "autoMapInputData",
+     "value": {},
+     "matchingColumns": [],
+     "schema": [
+      {
+       "id": "symbol",
+       "name": "symbol"
+      },
+      {
+       "id": "lot_id",
+       "name": "lot_id"
+      },
+      {
+       "id": "shares",
+       "name": "shares"
+      },
+      {
+       "id": "avg_price",
+       "name": "avg_price"
+      },
+      {
+       "id": "max_trade_value",
+       "name": "max_trade_value"
+      },
+      {
+       "id": "lot_size",
+       "name": "lot_size"
+      }
+     ]
+    }
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "clear-holding-final",
+   "name": "Clear Holding Final",
+   "position": [
+    1540,
+    500
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "operation": "append",
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Cash",
+     "mode": "name"
+    },
+    "options": {},
+    "columns": {
+     "mappingMode": "defineBelow",
+     "value": {
+      "amount": "={{ $('Build Liquidation').first().json.final_cash }}"
+     },
+     "matchingColumns": [],
+     "schema": [
+      {
+       "id": "amount",
+       "name": "amount"
+      }
+     ]
+    }
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "append-final-cash",
+   "name": "Append Final Cash",
+   "position": [
+    1760,
+    500
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "operation": "append",
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Equity",
+     "mode": "name"
+    },
+    "options": {},
+    "columns": {
+     "mappingMode": "defineBelow",
+     "value": {
+      "ts": "={{ $now.toISO() }}",
+      "cash": "={{ $('Build Liquidation').first().json.final_cash }}",
+      "holdings_value": 0,
+      "portfolio_value": "={{ $('Build Liquidation').first().json.final_value }}",
+      "notes": "FINAL"
+     },
+     "schema": [
+      {
+       "id": "ts",
+       "name": "ts"
+      },
+      {
+       "id": "cash",
+       "name": "cash"
+      },
+      {
+       "id": "holdings_value",
+       "name": "holdings_value"
+      },
+      {
+       "id": "portfolio_value",
+       "name": "portfolio_value"
+      },
+      {
+       "id": "notes",
+       "name": "notes"
+      }
+     ]
+    }
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "append-final-equity",
+   "name": "Append Final Equity",
+   "position": [
+    1980,
+    500
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "operation": "appendOrUpdate",
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "State",
+     "mode": "name"
+    },
+    "options": {},
+    "columns": {
+     "mappingMode": "defineBelow",
+     "value": {
+      "key": "status",
+      "value": "DONE"
+     },
+     "matchingColumns": [
+      "key"
+     ],
+     "schema": [
+      {
+       "id": "key",
+       "name": "key"
+      },
+      {
+       "id": "value",
+       "name": "value"
+      }
+     ]
+    }
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "mark-done",
+   "name": "Mark Done",
+   "position": [
+    2200,
+    500
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   }
+  }
+ ],
+ "connections": {
+  "Schedule EOD": {
+   "main": [
+    [
+     {
+      "node": "Read State",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Manual Run": {
+   "main": [
+    [
+     {
+      "node": "Read State",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Read State": {
+   "main": [
+    [
+     {
+      "node": "Gate",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Gate": {
+   "main": [
+    [
+     {
+      "node": "Fetch PSX",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Read Holding",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Read Cash",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Fetch PSX": {
+   "main": [
+    [
+     {
+      "node": "Join Data",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Read Holding": {
+   "main": [
+    [
+     {
+      "node": "Join Data",
+      "type": "main",
+      "index": 1
+     }
+    ]
+   ]
+  },
+  "Read Cash": {
+   "main": [
+    [
+     {
+      "node": "Join Data",
+      "type": "main",
+      "index": 2
+     }
+    ]
+   ]
+  },
+  "Join Data": {
+   "main": [
+    [
+     {
+      "node": "Value Portfolio",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Value Portfolio": {
+   "main": [
+    [
+     {
+      "node": "Append Equity",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Build Liquidation": {
+   "main": [
+    [
+     {
+      "node": "Append Final Trades",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Append Final Trades": {
+   "main": [
+    [
+     {
+      "node": "Clear Holding Final",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Clear Holding Final": {
+   "main": [
+    [
+     {
+      "node": "Append Final Cash",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Append Final Cash": {
+   "main": [
+    [
+     {
+      "node": "Append Final Equity",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Append Final Equity": {
+   "main": [
+    [
+     {
+      "node": "Mark Done",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1",
+  "timezone": "Asia/Karachi"
+ },
+ "active": false
+}

@@ -1,0 +1,848 @@
+{
+ "name": "PSX 5. Reset Virtual Book",
+ "nodes": [
+  {
+   "parameters": {},
+   "type": "n8n-nodes-base.manualTrigger",
+   "typeVersion": 1,
+   "id": "go",
+   "name": "Go",
+   "position": [
+    80,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "operation": "clear",
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Holding",
+     "mode": "name"
+    },
+    "options": {},
+    "columns": {
+     "mappingMode": "autoMapInputData",
+     "value": {},
+     "matchingColumns": [],
+     "schema": [
+      {
+       "id": "symbol",
+       "name": "symbol"
+      },
+      {
+       "id": "lot_id",
+       "name": "lot_id"
+      },
+      {
+       "id": "shares",
+       "name": "shares"
+      },
+      {
+       "id": "avg_price",
+       "name": "avg_price"
+      },
+      {
+       "id": "max_trade_value",
+       "name": "max_trade_value"
+      },
+      {
+       "id": "lot_size",
+       "name": "lot_size"
+      }
+     ]
+    }
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "clear-holding",
+   "name": "Clear Holding",
+   "position": [
+    400,
+    300
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "operation": "clear",
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Cash",
+     "mode": "name"
+    },
+    "options": {},
+    "columns": {
+     "mappingMode": "autoMapInputData",
+     "value": {},
+     "matchingColumns": [],
+     "schema": [
+      {
+       "id": "amount",
+       "name": "amount"
+      }
+     ]
+    }
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "clear-cash",
+   "name": "Clear Cash",
+   "position": [
+    520,
+    300
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "operation": "clear",
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Settings",
+     "mode": "name"
+    },
+    "options": {},
+    "columns": {
+     "mappingMode": "autoMapInputData",
+     "value": {},
+     "matchingColumns": [],
+     "schema": [
+      {
+       "id": "key",
+       "name": "key"
+      },
+      {
+       "id": "value",
+       "name": "value"
+      }
+     ]
+    }
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "clear-settings",
+   "name": "Clear Settings",
+   "position": [
+    640,
+    300
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "operation": "clear",
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Watchlist",
+     "mode": "name"
+    },
+    "options": {},
+    "columns": {
+     "mappingMode": "autoMapInputData",
+     "value": {},
+     "matchingColumns": [],
+     "schema": [
+      {
+       "id": "symbol",
+       "name": "symbol"
+      },
+      {
+       "id": "max_trade_value",
+       "name": "max_trade_value"
+      },
+      {
+       "id": "lot_size",
+       "name": "lot_size"
+      }
+     ]
+    }
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "clear-watchlist",
+   "name": "Clear Watchlist",
+   "position": [
+    760,
+    300
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "operation": "clear",
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Signals",
+     "mode": "name"
+    },
+    "options": {},
+    "columns": {
+     "mappingMode": "autoMapInputData",
+     "value": {},
+     "matchingColumns": [],
+     "schema": [
+      {
+       "id": "run_ts",
+       "name": "run_ts"
+      },
+      {
+       "id": "symbol",
+       "name": "symbol"
+      },
+      {
+       "id": "action",
+       "name": "action"
+      },
+      {
+       "id": "quantity",
+       "name": "quantity"
+      },
+      {
+       "id": "limit_price",
+       "name": "limit_price"
+      },
+      {
+       "id": "current_price",
+       "name": "current_price"
+      },
+      {
+       "id": "change_pct",
+       "name": "change_pct"
+      },
+      {
+       "id": "trade_value",
+       "name": "trade_value"
+      },
+      {
+       "id": "reason",
+       "name": "reason"
+      }
+     ]
+    }
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "clear-signals",
+   "name": "Clear Signals",
+   "position": [
+    880,
+    300
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "operation": "clear",
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Trades",
+     "mode": "name"
+    },
+    "options": {},
+    "columns": {
+     "mappingMode": "autoMapInputData",
+     "value": {},
+     "matchingColumns": [],
+     "schema": [
+      {
+       "id": "ts",
+       "name": "ts"
+      },
+      {
+       "id": "symbol",
+       "name": "symbol"
+      },
+      {
+       "id": "side",
+       "name": "side"
+      },
+      {
+       "id": "quantity",
+       "name": "quantity"
+      },
+      {
+       "id": "price",
+       "name": "price"
+      },
+      {
+       "id": "value",
+       "name": "value"
+      },
+      {
+       "id": "cash_after",
+       "name": "cash_after"
+      },
+      {
+       "id": "note",
+       "name": "note"
+      }
+     ]
+    }
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "clear-trades",
+   "name": "Clear Trades",
+   "position": [
+    1000,
+    300
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "operation": "clear",
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "State",
+     "mode": "name"
+    },
+    "options": {},
+    "columns": {
+     "mappingMode": "autoMapInputData",
+     "value": {},
+     "matchingColumns": [],
+     "schema": [
+      {
+       "id": "key",
+       "name": "key"
+      },
+      {
+       "id": "value",
+       "name": "value"
+      }
+     ]
+    }
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "clear-state",
+   "name": "Clear State",
+   "position": [
+    1120,
+    300
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "operation": "clear",
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Equity",
+     "mode": "name"
+    },
+    "options": {},
+    "columns": {
+     "mappingMode": "autoMapInputData",
+     "value": {},
+     "matchingColumns": [],
+     "schema": [
+      {
+       "id": "ts",
+       "name": "ts"
+      },
+      {
+       "id": "cash",
+       "name": "cash"
+      },
+      {
+       "id": "holdings_value",
+       "name": "holdings_value"
+      },
+      {
+       "id": "portfolio_value",
+       "name": "portfolio_value"
+      },
+      {
+       "id": "notes",
+       "name": "notes"
+      }
+     ]
+    }
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "clear-equity",
+   "name": "Clear Equity",
+   "position": [
+    1240,
+    300
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "jsCode": "const rows=[{\"key\": \"recipient\", \"value\": \"a.rehman0364@gmail.com\"}, {\"key\": \"min_change_pct_buy\", \"value\": \"1\"}, {\"key\": \"min_change_pct_sell\", \"value\": \"-1\"}, {\"key\": \"max_cash_fraction_per_trade\", \"value\": \"0.5\"}, {\"key\": \"default_max_trade_value\", \"value\": \"50000\"}, {\"key\": \"default_lot_size\", \"value\": \"1\"}, {\"key\": \"momentum_weight_pct\", \"value\": \"40\"}, {\"key\": \"position_weight_pct\", \"value\": \"30\"}, {\"key\": \"volume_weight_pct\", \"value\": \"30\"}, {\"key\": \"score_buy_threshold\", \"value\": \"60\"}, {\"key\": \"score_sell_threshold\", \"value\": \"60\"}, {\"key\": \"volume_surge_lookback_days\", \"value\": \"20\"}, {\"key\": \"circuit_breaker_pct\", \"value\": \"10\"}, {\"key\": \"stop_loss_pct\", \"value\": \"7\"}, {\"key\": \"max_position_pct_of_portfolio\", \"value\": \"75\"}, {\"key\": \"min_traded_value_floor\", \"value\": \"1000000\"}, {\"key\": \"data_freshness_max_minutes\", \"value\": \"15\"}, {\"key\": \"openai_model\", \"value\": \"fable\"}, {\"key\": \"discovery_enabled\", \"value\": \"FALSE\"}];\nreturn rows.map(r=>({json:r}));"
+   },
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "id": "settings-rows",
+   "name": "Settings Rows",
+   "position": [
+    1360,
+    500
+   ]
+  },
+  {
+   "parameters": {
+    "operation": "append",
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Settings",
+     "mode": "name"
+    },
+    "options": {},
+    "columns": {
+     "mappingMode": "autoMapInputData",
+     "value": {},
+     "matchingColumns": [],
+     "schema": [
+      {
+       "id": "key",
+       "name": "key"
+      },
+      {
+       "id": "value",
+       "name": "value"
+      }
+     ]
+    }
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "seed-settings",
+   "name": "Seed Settings",
+   "position": [
+    1480,
+    500
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "jsCode": "const syms=[\"OGDC\", \"PPL\", \"MARI\", \"ENGRO\", \"LUCK\", \"HBL\", \"UBL\", \"FFC\", \"TRG\", \"SYS\"];\nreturn syms.map(s=>({json:{symbol:s,max_trade_value:50000,lot_size:1}}));"
+   },
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "id": "watchlist-rows",
+   "name": "Watchlist Rows",
+   "position": [
+    1600,
+    650
+   ]
+  },
+  {
+   "parameters": {
+    "operation": "append",
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Watchlist",
+     "mode": "name"
+    },
+    "options": {},
+    "columns": {
+     "mappingMode": "autoMapInputData",
+     "value": {},
+     "matchingColumns": [],
+     "schema": [
+      {
+       "id": "symbol",
+       "name": "symbol"
+      },
+      {
+       "id": "max_trade_value",
+       "name": "max_trade_value"
+      },
+      {
+       "id": "lot_size",
+       "name": "lot_size"
+      }
+     ]
+    }
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "seed-watchlist",
+   "name": "Seed Watchlist",
+   "position": [
+    1720,
+    650
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "operation": "append",
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Cash",
+     "mode": "name"
+    },
+    "options": {},
+    "columns": {
+     "mappingMode": "defineBelow",
+     "value": {
+      "amount": 500000
+     },
+     "matchingColumns": [],
+     "schema": [
+      {
+       "id": "amount",
+       "name": "amount"
+      }
+     ]
+    }
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "seed-cash",
+   "name": "Seed Cash",
+   "position": [
+    1840,
+    800
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "jsCode": "return [{json:{key:'end_date',value:'2026-09-19T15:30:00+05:00'}},{json:{key:'last_row',value:'1'}},{json:{key:'status',value:'RUNNING'}},{json:{key:'start_value',value:'500000'}},{json:{key:'started',value:'2026-09-12'}}];"
+   },
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "id": "state-rows",
+   "name": "State Rows",
+   "position": [
+    1960,
+    950
+   ]
+  },
+  {
+   "parameters": {
+    "operation": "append",
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "State",
+     "mode": "name"
+    },
+    "options": {},
+    "columns": {
+     "mappingMode": "autoMapInputData",
+     "value": {},
+     "matchingColumns": [],
+     "schema": [
+      {
+       "id": "key",
+       "name": "key"
+      },
+      {
+       "id": "value",
+       "name": "value"
+      }
+     ]
+    }
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "seed-state",
+   "name": "Seed State",
+   "position": [
+    2080,
+    950
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   }
+  }
+ ],
+ "connections": {
+  "Go": {
+   "main": [
+    [
+     {
+      "node": "Clear Holding",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Clear Holding": {
+   "main": [
+    [
+     {
+      "node": "Clear Cash",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Clear Cash": {
+   "main": [
+    [
+     {
+      "node": "Clear Settings",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Clear Settings": {
+   "main": [
+    [
+     {
+      "node": "Clear Watchlist",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Clear Watchlist": {
+   "main": [
+    [
+     {
+      "node": "Clear Signals",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Clear Signals": {
+   "main": [
+    [
+     {
+      "node": "Clear Trades",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Clear Trades": {
+   "main": [
+    [
+     {
+      "node": "Clear State",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Clear State": {
+   "main": [
+    [
+     {
+      "node": "Clear Equity",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Clear Equity": {
+   "main": [
+    [
+     {
+      "node": "Settings Rows",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Settings Rows": {
+   "main": [
+    [
+     {
+      "node": "Seed Settings",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Seed Settings": {
+   "main": [
+    [
+     {
+      "node": "Watchlist Rows",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Watchlist Rows": {
+   "main": [
+    [
+     {
+      "node": "Seed Watchlist",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Seed Watchlist": {
+   "main": [
+    [
+     {
+      "node": "Seed Cash",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Seed Cash": {
+   "main": [
+    [
+     {
+      "node": "State Rows",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "State Rows": {
+   "main": [
+    [
+     {
+      "node": "Seed State",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1",
+  "timezone": "Asia/Karachi"
+ }
+}

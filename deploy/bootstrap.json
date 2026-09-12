@@ -1,0 +1,381 @@
+{
+ "name": "PSX 1. Bootstrap & Seed",
+ "nodes": [
+  {
+   "parameters": {},
+   "type": "n8n-nodes-base.manualTrigger",
+   "typeVersion": 1,
+   "id": "go",
+   "name": "Go",
+   "position": [
+    80,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "resource": "spreadsheet",
+    "operation": "create",
+    "title": "PSX Market Watch Virtual",
+    "sheetsUi": {
+     "sheetValues": [
+      {
+       "title": "Holding"
+      },
+      {
+       "title": "Cash"
+      },
+      {
+       "title": "Settings"
+      },
+      {
+       "title": "Watchlist"
+      },
+      {
+       "title": "Signals"
+      },
+      {
+       "title": "Trades"
+      },
+      {
+       "title": "State"
+      },
+      {
+       "title": "Equity"
+      }
+     ]
+    },
+    "options": {}
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   },
+   "id": "create-spreadsheet",
+   "name": "Create Spreadsheet",
+   "position": [
+    300,
+    300
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "const rows=[{\"key\": \"recipient\", \"value\": \"a.rehman0364@gmail.com\"}, {\"key\": \"min_change_pct_buy\", \"value\": \"1\"}, {\"key\": \"min_change_pct_sell\", \"value\": \"-1\"}, {\"key\": \"max_cash_fraction_per_trade\", \"value\": \"0.5\"}, {\"key\": \"default_max_trade_value\", \"value\": \"50000\"}, {\"key\": \"default_lot_size\", \"value\": \"1\"}, {\"key\": \"momentum_weight_pct\", \"value\": \"40\"}, {\"key\": \"position_weight_pct\", \"value\": \"30\"}, {\"key\": \"volume_weight_pct\", \"value\": \"30\"}, {\"key\": \"score_buy_threshold\", \"value\": \"60\"}, {\"key\": \"score_sell_threshold\", \"value\": \"60\"}, {\"key\": \"volume_surge_lookback_days\", \"value\": \"20\"}, {\"key\": \"circuit_breaker_pct\", \"value\": \"10\"}, {\"key\": \"stop_loss_pct\", \"value\": \"7\"}, {\"key\": \"max_position_pct_of_portfolio\", \"value\": \"75\"}, {\"key\": \"min_traded_value_floor\", \"value\": \"1000000\"}, {\"key\": \"data_freshness_max_minutes\", \"value\": \"15\"}, {\"key\": \"openai_model\", \"value\": \"fable\"}, {\"key\": \"discovery_enabled\", \"value\": \"FALSE\"}];\nreturn rows.map(r=>({json:r}));"
+   },
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "id": "build-settings-rows",
+   "name": "Build Settings Rows",
+   "position": [
+    920,
+    320
+   ]
+  },
+  {
+   "parameters": {
+    "operation": "append",
+    "documentId": {
+     "__rl": true,
+     "value": "={{ $('Create Spreadsheet').first().json.spreadsheetId }}",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Settings",
+     "mode": "name"
+    },
+    "options": {},
+    "columns": {
+     "mappingMode": "autoMapInputData",
+     "value": {},
+     "matchingColumns": [],
+     "schema": [
+      {
+       "id": "key",
+       "name": "key"
+      },
+      {
+       "id": "value",
+       "name": "value"
+      }
+     ]
+    }
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "seed-settings",
+   "name": "Seed Settings",
+   "position": [
+    1320,
+    320
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "jsCode": "const syms=[\"OGDC\", \"PPL\", \"MARI\", \"ENGRO\", \"LUCK\", \"HBL\", \"UBL\", \"FFC\", \"TRG\", \"SYS\"];\nreturn syms.map(s=>({json:{symbol:s,max_trade_value:50000,lot_size:1}}));"
+   },
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "id": "build-watchlist-rows",
+   "name": "Build Watchlist Rows",
+   "position": [
+    1320,
+    520
+   ]
+  },
+  {
+   "parameters": {
+    "operation": "append",
+    "documentId": {
+     "__rl": true,
+     "value": "={{ $('Create Spreadsheet').first().json.spreadsheetId }}",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Watchlist",
+     "mode": "name"
+    },
+    "options": {},
+    "columns": {
+     "mappingMode": "autoMapInputData",
+     "value": {},
+     "matchingColumns": [],
+     "schema": [
+      {
+       "id": "symbol",
+       "name": "symbol"
+      },
+      {
+       "id": "max_trade_value",
+       "name": "max_trade_value"
+      },
+      {
+       "id": "lot_size",
+       "name": "lot_size"
+      }
+     ]
+    }
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "seed-watchlist",
+   "name": "Seed Watchlist",
+   "position": [
+    1720,
+    520
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "operation": "append",
+    "documentId": {
+     "__rl": true,
+     "value": "={{ $('Create Spreadsheet').first().json.spreadsheetId }}",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Cash",
+     "mode": "name"
+    },
+    "options": {},
+    "columns": {
+     "mappingMode": "defineBelow",
+     "value": {
+      "amount": 500000
+     },
+     "matchingColumns": [],
+     "schema": [
+      {
+       "id": "amount",
+       "name": "amount"
+      }
+     ]
+    }
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "seed-cash",
+   "name": "Seed Cash",
+   "position": [
+    1920,
+    720
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "jsCode": "return [{json:{key:'end_date',value:'2026-09-19T15:30:00+05:00'}},{json:{key:'last_row',value:'1'}},{json:{key:'status',value:'RUNNING'}},{json:{key:'start_value',value:'500000'}},{json:{key:'started',value:'2026-09-12'}}];"
+   },
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "id": "build-state-rows",
+   "name": "Build State Rows",
+   "position": [
+    1920,
+    720
+   ]
+  },
+  {
+   "parameters": {
+    "operation": "append",
+    "documentId": {
+     "__rl": true,
+     "value": "={{ $('Create Spreadsheet').first().json.spreadsheetId }}",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "State",
+     "mode": "name"
+    },
+    "options": {},
+    "columns": {
+     "mappingMode": "autoMapInputData",
+     "value": {},
+     "matchingColumns": [],
+     "schema": [
+      {
+       "id": "key",
+       "name": "key"
+      },
+      {
+       "id": "value",
+       "name": "value"
+      }
+     ]
+    }
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "seed-state",
+   "name": "Seed State",
+   "position": [
+    2320,
+    720
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   }
+  }
+ ],
+ "connections": {
+  "Go": {
+   "main": [
+    [
+     {
+      "node": "Create Spreadsheet",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Create Spreadsheet": {
+   "main": [
+    [
+     {
+      "node": "Build Settings Rows",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Build Settings Rows": {
+   "main": [
+    [
+     {
+      "node": "Seed Settings",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Seed Settings": {
+   "main": [
+    [
+     {
+      "node": "Build Watchlist Rows",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Build Watchlist Rows": {
+   "main": [
+    [
+     {
+      "node": "Seed Watchlist",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Seed Watchlist": {
+   "main": [
+    [
+     {
+      "node": "Seed Cash",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Seed Cash": {
+   "main": [
+    [
+     {
+      "node": "Build State Rows",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Build State Rows": {
+   "main": [
+    [
+     {
+      "node": "Seed State",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1",
+  "timezone": "Asia/Karachi"
+ }
+}

@@ -1,0 +1,717 @@
+{
+ "id": "psxdash0001",
+ "name": "PSX 6. Virtual Dashboard",
+ "nodes": [
+  {
+   "parameters": {
+    "path": "psx-virtual-dashboard",
+    "httpMethod": "GET",
+    "responseMode": "responseNode",
+    "options": {}
+   },
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2,
+   "id": "dash-page-webhook",
+   "name": "Dashboard Page",
+   "position": [
+    -300,
+    340
+   ]
+  },
+  {
+   "parameters": {
+    "respondWith": "text",
+    "responseBody": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>PSX Virtual Trading</title>\n<style>\n  :root {\n    --bg: #0b0f16; --card: #121826; --card2: #0e141f; --line: #1f2937;\n    --txt: #e5edf7; --dim: #8b98ab; --green: #34d399; --red: #f87171;\n    --amber: #fbbf24; --blue: #60a5fa; --accent: #f5c542;\n  }\n  * { box-sizing: border-box; margin: 0; padding: 0; }\n  body { background: var(--bg); color: var(--txt); font: 14px/1.5 \"Segoe UI\", system-ui, -apple-system, sans-serif; padding: 24px 20px 60px; }\n  .wrap { max-width: 1180px; margin: 0 auto; }\n  header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 20px; }\n  h1 { font-size: 21px; font-weight: 650; letter-spacing: .2px; }\n  h1 .sig { color: var(--accent); }\n  .pill { padding: 3px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; border: 1px solid var(--line); background: var(--card); color: var(--dim); }\n  .pill.run { color: var(--green); border-color: rgba(52,211,153,.4); }\n  .pill.done { color: var(--blue); border-color: rgba(96,165,250,.4); }\n  .pill .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: currentColor; margin-right: 6px; animation: pulse 1.6s infinite; }\n  @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .35 } }\n  .meta { margin-left: auto; display: flex; align-items: center; gap: 10px; color: var(--dim); font-size: 12px; }\n  button { background: var(--card); color: var(--txt); border: 1px solid var(--line); border-radius: 8px; padding: 6px 14px; font-size: 12.5px; cursor: pointer; }\n  button:hover { border-color: var(--accent); }\n  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 14px; }\n  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }\n  .stat .label { color: var(--dim); font-size: 12px; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 6px; }\n  .stat .value { font-size: 23px; font-weight: 700; font-variant-numeric: tabular-nums; }\n  .stat .sub { font-size: 12px; margin-top: 4px; color: var(--dim); }\n  .up { color: var(--green) } .down { color: var(--red) } .flat { color: var(--dim) }\n  .grid2 { display: grid; grid-template-columns: 3fr 2fr; gap: 14px; }\n  @media (max-width: 900px) { .grid2 { grid-template-columns: 1fr } }\n  .card h2 { font-size: 13px; font-weight: 600; color: var(--dim); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 12px; }\n  #chartbox { position: relative; }\n  .empty { color: var(--dim); font-size: 13px; padding: 26px 8px; text-align: center; border: 1px dashed var(--line); border-radius: 10px; }\n  table { width: 100%; border-collapse: collapse; font-size: 13px; }\n  th { text-align: left; color: var(--dim); font-weight: 500; font-size: 11.5px; text-transform: uppercase; letter-spacing: .6px; padding: 7px 8px; border-bottom: 1px solid var(--line); }\n  td { padding: 7px 8px; border-bottom: 1px solid rgba(31,41,55,.55); font-variant-numeric: tabular-nums; }\n  tr:last-child td { border-bottom: none; }\n  td.num, th.num { text-align: right; }\n  .badge { display: inline-block; padding: 1px 9px; border-radius: 6px; font-size: 11.5px; font-weight: 700; }\n  .b-buy { background: rgba(52,211,153,.14); color: var(--green); }\n  .b-sell { background: rgba(248,113,113,.14); color: var(--red); }\n  .b-hold { background: rgba(139,152,171,.14); color: var(--dim); }\n  .b-nodata { background: rgba(251,191,36,.14); color: var(--amber); }\n  .scroll { max-height: 340px; overflow-y: auto; }\n  .scroll::-webkit-scrollbar { width: 8px } .scroll::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px }\n  footer { margin-top: 22px; color: var(--dim); font-size: 12px; text-align: center; }\n  .tip { position: absolute; pointer-events: none; background: #050810; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 12px; white-space: nowrap; display: none; z-index: 5; box-shadow: 0 6px 18px rgba(0,0,0,.5); }\n  .err { color: var(--red); }\n</style>\n</head>\n<body>\n<div class=\"wrap\">\n  <header>\n    <h1><span class=\"sig\">PSX</span> Virtual Trading</h1>\n    <span class=\"pill\" id=\"statusPill\"><span class=\"dot\"></span><span id=\"statusTxt\">\u2026</span></span>\n    <span class=\"pill\" id=\"countdown\"></span>\n    <div class=\"meta\">\n      <span id=\"updated\"></span>\n      <button onclick=\"load(true)\">Refresh</button>\n    </div>\n  </header>\n\n  <div class=\"stats\">\n    <div class=\"card stat\"><div class=\"label\">Portfolio Value</div><div class=\"value\" id=\"pv\">\u2014</div><div class=\"sub\" id=\"pvSub\"></div></div>\n    <div class=\"card stat\"><div class=\"label\">Total Return</div><div class=\"value\" id=\"ret\">\u2014</div><div class=\"sub\" id=\"retSub\"></div></div>\n    <div class=\"card stat\"><div class=\"label\">Cash</div><div class=\"value\" id=\"cash\">\u2014</div><div class=\"sub\" id=\"cashSub\"></div></div>\n    <div class=\"card stat\"><div class=\"label\">Holdings</div><div class=\"value\" id=\"hv\">\u2014</div><div class=\"sub\" id=\"hvSub\"></div></div>\n  </div>\n\n  <div class=\"card\" id=\"chartcard\" style=\"margin-bottom:14px\">\n    <h2>Equity Curve</h2>\n    <div id=\"chartbox\">\n      <div class=\"empty\" id=\"chartEmpty\">No EOD valuations yet \u2014 the curve starts after the first trading day (EOD 15:35 PKT).</div>\n      <svg id=\"chart\" width=\"100%\" height=\"240\" style=\"display:none\"></svg>\n      <div class=\"tip\" id=\"tip\"></div>\n    </div>\n  </div>\n\n  <div class=\"grid2\">\n    <div class=\"card\">\n      <h2>Holdings</h2>\n      <div id=\"holdWrap\"><div class=\"empty\">No open positions yet.</div></div>\n    </div>\n    <div class=\"card\">\n      <h2>Signals <span style=\"float:right;text-transform:none;letter-spacing:0\" id=\"sigCount\"></span></h2>\n      <div class=\"scroll\" id=\"sigWrap\"><div class=\"empty\">No signals yet \u2014 first run Monday 09:00 PKT.</div></div>\n    </div>\n  </div>\n\n  <div class=\"card\" style=\"margin-top:14px\">\n    <h2>Trades <span style=\"float:right;text-transform:none;letter-spacing:0\" id=\"tradeCount\"></span></h2>\n    <div class=\"scroll\" id=\"tradeWrap\"><div class=\"empty\">No trades yet.</div></div>\n  </div>\n\n  <footer>PSX Market Watch Signals \u00b7 virtual trading experiment \u00b7 data: Google Sheets via n8n \u00b7 auto-refresh 60s</footer>\n</div>\n\n<script>\nconst API = \"psx-virtual-dashboard-data\";\nconst fmtP = n => n == null || isNaN(n) ? \"\u2014\" : \"PKR \" + Number(n).toLocaleString(\"en-PK\", { maximumFractionDigits: 0 });\nconst fmtN = (n, d = 2) => n == null || isNaN(n) ? \"\u2014\" : Number(n).toLocaleString(\"en-PK\", { maximumFractionDigits: d, minimumFractionDigits: 0 });\nconst pct = n => n == null || isNaN(n) ? \"\u2014\" : (n >= 0 ? \"+\" : \"\") + n.toFixed(2) + \"%\";\nconst cls = n => n > 0.0001 ? \"up\" : n < -0.0001 ? \"down\" : \"flat\";\nconst esc = s => String(s ?? \"\").replace(/[&<>\"]/g, c => ({ \"&\": \"&amp;\", \"<\": \"&lt;\", \">\": \"&gt;\", '\"': \"&quot;\" }[c]));\nconst ago = ts => { if (!ts) return \"\"; const s = (Date.now() - new Date(ts).getTime()) / 1000; if (isNaN(s)) return \"\";\n  if (s < 90) return \"just now\"; if (s < 3600) return Math.round(s / 60) + \"m ago\"; if (s < 86400) return Math.round(s / 3600) + \"h ago\"; return Math.round(s / 86400) + \"d ago\"; };\n\nfunction stateMap(state) { const m = {}; (state || []).forEach(r => m[r.key] = r.value); return m; }\nfunction lastPriceMap(signals) {\n  const m = {};\n  for (let i = (signals || []).length - 1; i >= 0; i--) {\n    const s = signals[i];\n    if (s.symbol && s.current_price != null && !(s.symbol in m)) m[s.symbol] = s.current_price;\n  }\n  return m;\n}\n\nfunction render(d) {\n  const st = stateMap(d.state);\n  const start = Number(st.start_value) || 500000;\n  const eq = (d.equity || []).slice().sort((a, b) => new Date(a.ts) - new Date(b.ts));\n  const cashRows = d.cash || [];\n  const lastEq = eq.length ? eq[eq.length - 1] : null;\n  const cash = lastEq ? Number(lastEq.cash) : (cashRows.length ? Number(cashRows[cashRows.length - 1].amount) : null);\n  const hv = lastEq ? Number(lastEq.holdings_value) : null;\n  const pv = lastEq ? Number(lastEq.portfolio_value) : (cash != null ? cash : null);\n\n  document.getElementById(\"pv\").textContent = pv != null ? fmtP(pv) : \"\u2014\";\n  document.getElementById(\"pvSub\").textContent = eq.length ? \"as of \" + new Date(lastEq.ts).toLocaleString() : \"pre-market\";\n  if (pv != null) {\n    const rp = (pv - start) / start * 100, rd = pv - start;\n    const rEl = document.getElementById(\"ret\");\n    rEl.innerHTML = '<span class=\"' + cls(rd) + '\">' + pct(rp) + '</span>';\n    document.getElementById(\"retSub\").innerHTML = '<span class=\"' + cls(rd) + '\">' + (rd >= 0 ? \"+\" : \"\u2212\") + fmtP(Math.abs(rd)).slice(4) + ' vs ' + fmtP(start).slice(4) + ' start</span>';\n  }\n  document.getElementById(\"cash\").textContent = cash != null ? fmtP(cash) : \"\u2014\";\n  document.getElementById(\"cashSub\").textContent = cash != null ? pct(start ? (cash - start) / start * 100 : null) + \" of start\" : \"\";\n  document.getElementById(\"hv\").textContent = hv != null ? fmtP(hv) : (d.holding && d.holding.length ? \"\u2014\" : \"PKR 0\");\n  document.getElementById(\"hvSub\").textContent = (d.holding || []).length + \" open position\" + ((d.holding || []).length === 1 ? \"\" : \"s\");\n\n  const pill = document.getElementById(\"statusPill\"), stx = document.getElementById(\"statusTxt\");\n  const status = String(st.status || \"RUNNING\").toUpperCase();\n  stx.textContent = status;\n  pill.className = \"pill \" + (status === \"DONE\" ? \"done\" : \"run\");\n  const end = st.end_date ? new Date(st.end_date) : null;\n  const cd = document.getElementById(\"countdown\");\n  if (status === \"DONE\") { cd.textContent = \"Experiment complete\"; cd.className = \"pill done\"; }\n  else if (end && !isNaN(end)) {\n    let s = Math.max(0, Math.floor((end - Date.now()) / 1000));\n    const dd = Math.floor(s / 86400), hh = Math.floor(s % 86400 / 3600), mm = Math.floor(s % 3600 / 60);\n    cd.textContent = \"ends \" + end.toLocaleDateString() + \" \u00b7 \" + (dd ? dd + \"d \" : \"\") + hh + \"h \" + mm + \"m left\";\n  } else cd.style.display = \"none\";\n\n  drawChart(eq, start);\n\n  const lp = lastPriceMap(d.signals);\n  const hold = d.holding || [];\n  const hw = document.getElementById(\"holdWrap\");\n  if (hold.length) {\n    let inv = 0; hold.forEach(h => inv += Number(h.shares || 0) * Number(h.avg_price || 0));\n    let unreal = hv != null ? hv - inv : null;\n    let rows = hold.map(h => {\n      const q = Number(h.shares || 0), ap = Number(h.avg_price || 0), last = lp[h.symbol];\n      const u = last != null ? (last - ap) * q : null;\n      return \"<tr><td><b>\" + esc(h.symbol) + \"</b></td><td class='num'>\" + fmtN(q, 0) + \"</td><td class='num'>\" + fmtN(ap) +\n        \"</td><td class='num'>\" + fmtN(last) + \"</td><td class='num'>\" + fmtP(q * ap) + \"</td><td class='num'><span class='\" + cls(u) + \"'>\" +\n        (u == null ? \"\u2014\" : (u >= 0 ? \"+\" : \"\u2212\") + fmtP(Math.abs(u)).slice(4) + \" (\" + pct(ap ? u / (q * ap) * 100 : null) + \")\") + \"</span></td></tr>\";\n    }).join(\"\");\n    hw.innerHTML = \"<table><tr><th>Symbol</th><th class='num'>Shares</th><th class='num'>Avg Cost</th><th class='num'>Last</th><th class='num'>Invested</th><th class='num'>Unrealized</th></tr>\" + rows + \"</table>\" +\n      (unreal != null ? \"<div style='margin-top:10px;font-size:12px;color:var(--dim)'>Invested \" + fmtP(inv) + \" \u00b7 unrealized <span class='\" + cls(unreal) + \"'>\" + (unreal >= 0 ? \"+\" : \"\u2212\") + fmtP(Math.abs(unreal)).slice(4) + \"</span> (last marked \" + (lastEq ? new Date(lastEq.ts).toLocaleString() : \"\u2014\") + \")</div>\" : \"\");\n  } else hw.innerHTML = \"<div class='empty'>No open positions yet.</div>\";\n\n  const sig = (d.signals || []).slice().reverse();\n  document.getElementById(\"sigCount\").textContent = sig.length ? \"(\" + (d.signals || []).length + \" total)\" : \"\";\n  const sw = document.getElementById(\"sigWrap\");\n  if (sig.length) {\n    sw.innerHTML = \"<table><tr><th>When</th><th>Symbol</th><th>Action</th><th class='num'>Price</th><th class='num'>Chg%</th></tr>\" +\n      sig.slice(0, 40).map(s => {\n        const b = s.action === \"BUY\" ? \"b-buy\" : s.action === \"SELL\" ? \"b-sell\" : s.action === \"NO_DATA\" ? \"b-nodata\" : \"b-hold\";\n        const cp = Number(s.change_pct);\n        return \"<tr><td title='\" + esc(s.run_ts) + \"'>\" + ago(s.run_ts) + \"</td><td><b>\" + esc(s.symbol) + \"</b></td><td><span class='badge \" + b + \"'>\" + esc(s.action) + \"</span></td><td class='num'>\" + fmtN(s.current_price) + \"</td><td class='num'><span class='\" + cls(cp) + \"'>\" + pct(cp) + \"</span></td></tr>\";\n      }).join(\"\") + \"</table>\";\n  } else sw.innerHTML = \"<div class='empty'>No signals yet \u2014 first run Monday 09:00 PKT.</div>\";\n\n  const tr = (d.trades || []).slice().reverse();\n  document.getElementById(\"tradeCount\").textContent = tr.length ? \"(\" + tr.length + \" total)\" : \"\";\n  const tw = document.getElementById(\"tradeWrap\");\n  if (tr.length) {\n    tw.innerHTML = \"<table><tr><th>When</th><th>Symbol</th><th>Side</th><th class='num'>Qty</th><th class='num'>Price</th><th class='num'>Value</th><th class='num'>Cash After</th></tr>\" +\n      tr.slice(0, 60).map(t => \"<tr><td title='\" + esc(t.ts) + \"'>\" + ago(t.ts) + \"</td><td><b>\" + esc(t.symbol) + \"</b></td><td><span class='badge \" + (t.side === \"BUY\" ? \"b-buy\" : \"b-sell\") + \"'>\" + esc(t.side) + \"</span></td><td class='num'>\" + fmtN(t.quantity, 0) + \"</td><td class='num'>\" + fmtN(t.price) + \"</td><td class='num'>\" + fmtP(t.value) + \"</td><td class='num'>\" + fmtP(t.cash_after) + \"</td></tr>\").join(\"\") + \"</table>\";\n  } else tw.innerHTML = \"<div class='empty'>No trades yet.</div>\";\n}\n\nfunction drawChart(eq, start) {\n  const svg = document.getElementById(\"chart\"), empty = document.getElementById(\"chartEmpty\");\n  if (eq.length < 1) { svg.style.display = \"none\"; empty.style.display = \"block\"; return; }\n  svg.style.display = \"block\"; empty.style.display = \"none\";\n  const W = svg.clientWidth || 900, H = 240, PL = 64, PR = 14, PT = 14, PB = 26;\n  const pts = eq.map(e => ({ t: new Date(e.ts), v: Number(e.portfolio_value) }));\n  let lo = Math.min(...pts.map(p => p.v), start), hi = Math.max(...pts.map(p => p.v), start);\n  if (hi - lo < 1) { hi += 500; lo -= 500; }\n  const pad = (hi - lo) * 0.08; lo -= pad; hi += pad;\n  const X = i => PL + (pts.length === 1 ? (W - PL - PR) / 2 : i * (W - PL - PR) / (pts.length - 1));\n  const Y = v => PT + (H - PT - PB) * (1 - (v - lo) / (hi - lo));\n  let g = \"\";\n  for (let k = 0; k <= 4; k++) {\n    const v = lo + (hi - lo) * k / 4, y = Y(v);\n    g += \"<line x1='\" + PL + \"' y1='\" + y + \"' x2='\" + (W - PR) + \"' y2='\" + y + \"' stroke='#1f2937' stroke-width='1'/>\";\n    g += \"<text x='\" + (PL - 8) + \"' y='\" + (y + 4) + \"' fill='#8b98ab' font-size='10' text-anchor='end'>\" + Math.round(v / 1000) + \"k</text>\";\n  }\n  const yStart = Y(start);\n  g += \"<line x1='\" + PL + \"' y1='\" + yStart + \"' x2='\" + (W - PR) + \"' y2='\" + yStart + \"' stroke='#f5c542' stroke-width='1' stroke-dasharray='5 4' opacity='.6'/>\";\n  const line = pts.map((p, i) => (i ? \"L\" : \"M\") + X(i).toFixed(1) + \" \" + Y(p.v).toFixed(1)).join(\" \");\n  const area = line + \" L\" + X(pts.length - 1).toFixed(1) + \" \" + (H - PB) + \" L\" + X(0).toFixed(1) + \" \" + (H - PB) + \" Z\";\n  g += \"<defs><linearGradient id='ag' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#34d399' stop-opacity='.22'/><stop offset='1' stop-color='#34d399' stop-opacity='0'/></linearGradient></defs>\";\n  g += \"<path d='\" + area + \"' fill='url(#ag)'/>\";\n  const up = pts[pts.length - 1].v >= start;\n  g += \"<path d='\" + line + \"' fill='none' stroke='\" + (up ? \"#34d399\" : \"#f87171\") + \"' stroke-width='2.2' stroke-linejoin='round'/>\";\n  pts.forEach((p, i) => g += \"<circle cx='\" + X(i).toFixed(1) + \"' cy='\" + Y(p.v).toFixed(1) + \"' r='2.6' fill='\" + (up ? \"#34d399\" : \"#f87171\") + \"'/>\");\n  g += \"<text x='\" + PL + \"' y='\" + (H - 8) + \"' fill='#8b98ab' font-size='10'>\" + pts[0].t.toLocaleDateString() + \"</text>\";\n  g += \"<text x='\" + (W - PR) + \"' y='\" + (H - 8) + \"' fill='#8b98ab' font-size='10' text-anchor='end'>\" + pts[pts.length - 1].t.toLocaleDateString() + \"</text>\";\n  svg.setAttribute(\"viewBox\", \"0 0 \" + W + \" \" + H);\n  svg.innerHTML = g;\n  const tip = document.getElementById(\"tip\");\n  svg.onmousemove = ev => {\n    const r = svg.getBoundingClientRect();\n    const mx = (ev.clientX - r.left) * (W / r.width);\n    let bi = 0, bd = 1e9;\n    pts.forEach((p, i) => { const d2 = Math.abs(X(i) - mx); if (d2 < bd) { bd = d2; bi = i; } });\n    const p = pts[bi], dl = p.v - start;\n    tip.style.display = \"block\";\n    tip.innerHTML = \"<b>\" + p.t.toLocaleString() + \"</b><br>Portfolio: \" + fmtP(p.v) + \"<br><span class='\" + cls(dl) + \"'>\" + (dl >= 0 ? \"+\" : \"\u2212\") + fmtP(Math.abs(dl)).slice(4) + \" (\" + pct(start ? dl / start * 100 : null) + \")</span>\";\n    tip.style.left = Math.min(r.width - 170, Math.max(0, ev.clientX - r.left + 14)) + \"px\";\n    tip.style.top = Math.max(0, ev.clientY - r.top - 60) + \"px\";\n  };\n  svg.onmouseleave = () => tip.style.display = \"none\";\n}\n\nasync function load(manual) {\n  const upd = document.getElementById(\"updated\");\n  try {\n    const r = await fetch(API, { cache: \"no-store\" });\n    if (!r.ok) throw new Error(\"HTTP \" + r.status);\n    const d = await r.json();\n    render(d);\n    upd.textContent = \"updated \" + new Date().toLocaleTimeString();\n    upd.className = \"\";\n  } catch (e) {\n    upd.textContent = \"data unavailable (\" + e.message + \")\";\n    upd.className = \"err\";\n    if (manual) alert(\"Could not load data: \" + e.message);\n  }\n}\nload();\nsetInterval(load, 60000);\n</script>\n</body>\n</html>\n",
+    "options": {
+     "responseHeaders": {
+      "entries": [
+       {
+        "name": "Content-Type",
+        "value": "text/html; charset=utf-8"
+       }
+      ]
+     }
+    }
+   },
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1.1,
+   "id": "dash-page-respond",
+   "name": "Respond Page",
+   "position": [
+    -60,
+    340
+   ]
+  },
+  {
+   "parameters": {
+    "path": "psx-virtual-dashboard-data",
+    "httpMethod": "GET",
+    "responseMode": "responseNode",
+    "options": {}
+   },
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2,
+   "id": "dash-data-webhook",
+   "name": "Data In",
+   "position": [
+    -300,
+    700
+   ]
+  },
+  {
+   "parameters": {
+    "operation": "read",
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Holding",
+     "mode": "name"
+    },
+    "options": {}
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "read-holding",
+   "name": "Read Holding",
+   "position": [
+    -60,
+    420
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   },
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "jsCode": "return $input.all().map(i=>({json:{__tab:\"Holding\",row:i.json}}));"
+   },
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "id": "tag-holding",
+   "name": "Tag Holding",
+   "position": [
+    180,
+    420
+   ]
+  },
+  {
+   "parameters": {
+    "operation": "read",
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Cash",
+     "mode": "name"
+    },
+    "options": {}
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "read-cash",
+   "name": "Read Cash",
+   "position": [
+    -60,
+    570
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   },
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "jsCode": "return $input.all().map(i=>({json:{__tab:\"Cash\",row:i.json}}));"
+   },
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "id": "tag-cash",
+   "name": "Tag Cash",
+   "position": [
+    180,
+    570
+   ]
+  },
+  {
+   "parameters": {
+    "operation": "read",
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Settings",
+     "mode": "name"
+    },
+    "options": {}
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "read-settings",
+   "name": "Read Settings",
+   "position": [
+    -60,
+    720
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   },
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "jsCode": "return $input.all().map(i=>({json:{__tab:\"Settings\",row:i.json}}));"
+   },
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "id": "tag-settings",
+   "name": "Tag Settings",
+   "position": [
+    180,
+    720
+   ]
+  },
+  {
+   "parameters": {
+    "operation": "read",
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Watchlist",
+     "mode": "name"
+    },
+    "options": {}
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "read-watchlist",
+   "name": "Read Watchlist",
+   "position": [
+    -60,
+    870
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   },
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "jsCode": "return $input.all().map(i=>({json:{__tab:\"Watchlist\",row:i.json}}));"
+   },
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "id": "tag-watchlist",
+   "name": "Tag Watchlist",
+   "position": [
+    180,
+    870
+   ]
+  },
+  {
+   "parameters": {
+    "operation": "read",
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Signals",
+     "mode": "name"
+    },
+    "options": {}
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "read-signals",
+   "name": "Read Signals",
+   "position": [
+    -60,
+    1020
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   },
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "jsCode": "return $input.all().map(i=>({json:{__tab:\"Signals\",row:i.json}}));"
+   },
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "id": "tag-signals",
+   "name": "Tag Signals",
+   "position": [
+    180,
+    1020
+   ]
+  },
+  {
+   "parameters": {
+    "operation": "read",
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Trades",
+     "mode": "name"
+    },
+    "options": {}
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "read-trades",
+   "name": "Read Trades",
+   "position": [
+    -60,
+    1170
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   },
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "jsCode": "return $input.all().map(i=>({json:{__tab:\"Trades\",row:i.json}}));"
+   },
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "id": "tag-trades",
+   "name": "Tag Trades",
+   "position": [
+    180,
+    1170
+   ]
+  },
+  {
+   "parameters": {
+    "operation": "read",
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "State",
+     "mode": "name"
+    },
+    "options": {}
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "read-state",
+   "name": "Read State",
+   "position": [
+    -60,
+    1320
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   },
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "jsCode": "return $input.all().map(i=>({json:{__tab:\"State\",row:i.json}}));"
+   },
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "id": "tag-state",
+   "name": "Tag State",
+   "position": [
+    180,
+    1320
+   ]
+  },
+  {
+   "parameters": {
+    "operation": "read",
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Equity",
+     "mode": "name"
+    },
+    "options": {}
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "read-equity",
+   "name": "Read Equity",
+   "position": [
+    -60,
+    1470
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   },
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "jsCode": "return $input.all().map(i=>({json:{__tab:\"Equity\",row:i.json}}));"
+   },
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "id": "tag-equity",
+   "name": "Tag Equity",
+   "position": [
+    180,
+    1470
+   ]
+  },
+  {
+   "parameters": {
+    "mode": "append",
+    "numberInputs": 8
+   },
+   "type": "n8n-nodes-base.merge",
+   "typeVersion": 3,
+   "id": "join-tabs",
+   "name": "Join Tabs",
+   "position": [
+    420,
+    1080
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "const out = {holding: [], cash: [], settings: [], watchlist: [], signals: [], trades: [], state: [], equity: []};\nfor (const item of $input.all()) {\n  const j = item.json || {};\n  if (j.__tab && out[j.__tab]) out[j.__tab].push(j.row);\n}\nreturn [{json: {fetched_at: new Date().toISOString(), ...out}}];"
+   },
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "id": "assemble",
+   "name": "Assemble",
+   "position": [
+    640,
+    1080
+   ]
+  },
+  {
+   "parameters": {
+    "respondWith": "firstIncomingItem",
+    "options": {}
+   },
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1.1,
+   "id": "dash-data-respond",
+   "name": "Respond Data",
+   "position": [
+    860,
+    1080
+   ]
+  }
+ ],
+ "connections": {
+  "Dashboard Page": {
+   "main": [
+    [
+     {
+      "node": "Respond Page",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Read Holding": {
+   "main": [
+    [
+     {
+      "node": "Tag Holding",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Tag Holding": {
+   "main": [
+    [
+     {
+      "node": "Join Tabs",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Read Cash": {
+   "main": [
+    [
+     {
+      "node": "Tag Cash",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Tag Cash": {
+   "main": [
+    [
+     {
+      "node": "Join Tabs",
+      "type": "main",
+      "index": 1
+     }
+    ]
+   ]
+  },
+  "Read Settings": {
+   "main": [
+    [
+     {
+      "node": "Tag Settings",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Tag Settings": {
+   "main": [
+    [
+     {
+      "node": "Join Tabs",
+      "type": "main",
+      "index": 2
+     }
+    ]
+   ]
+  },
+  "Read Watchlist": {
+   "main": [
+    [
+     {
+      "node": "Tag Watchlist",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Tag Watchlist": {
+   "main": [
+    [
+     {
+      "node": "Join Tabs",
+      "type": "main",
+      "index": 3
+     }
+    ]
+   ]
+  },
+  "Read Signals": {
+   "main": [
+    [
+     {
+      "node": "Tag Signals",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Tag Signals": {
+   "main": [
+    [
+     {
+      "node": "Join Tabs",
+      "type": "main",
+      "index": 4
+     }
+    ]
+   ]
+  },
+  "Read Trades": {
+   "main": [
+    [
+     {
+      "node": "Tag Trades",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Tag Trades": {
+   "main": [
+    [
+     {
+      "node": "Join Tabs",
+      "type": "main",
+      "index": 5
+     }
+    ]
+   ]
+  },
+  "Read State": {
+   "main": [
+    [
+     {
+      "node": "Tag State",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Tag State": {
+   "main": [
+    [
+     {
+      "node": "Join Tabs",
+      "type": "main",
+      "index": 6
+     }
+    ]
+   ]
+  },
+  "Read Equity": {
+   "main": [
+    [
+     {
+      "node": "Tag Equity",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Tag Equity": {
+   "main": [
+    [
+     {
+      "node": "Join Tabs",
+      "type": "main",
+      "index": 7
+     }
+    ]
+   ]
+  },
+  "Data In": {
+   "main": [
+    [
+     {
+      "node": "Read Holding",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Read Cash",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Read Settings",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Read Watchlist",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Read Signals",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Read Trades",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Read State",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Read Equity",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Join Tabs": {
+   "main": [
+    [
+     {
+      "node": "Assemble",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Assemble": {
+   "main": [
+    [
+     {
+      "node": "Respond Data",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1",
+  "timezone": "Asia/Karachi"
+ },
+ "active": false
+}

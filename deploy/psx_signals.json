@@ -1,0 +1,385 @@
+{
+ "name": "PSX 2. Market Watch Signals",
+ "nodes": [
+  {
+   "parameters": {
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Holding",
+     "mode": "name"
+    },
+    "options": {
+     "outputFormatting": {
+      "values": {
+       "general": "UNFORMATTED_VALUE",
+       "date": "FORMATTED_STRING"
+      }
+     },
+     "returnFirstMatch": false
+    }
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "position": [
+    224,
+    0
+   ],
+   "id": "read-holdings",
+   "name": "Read Holdings",
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Cash",
+     "mode": "name"
+    },
+    "options": {}
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "position": [
+    448,
+    0
+   ],
+   "id": "read-cash",
+   "name": "Read Cash",
+   "executeOnce": true,
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Settings",
+     "mode": "name"
+    },
+    "options": {}
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "position": [
+    672,
+    0
+   ],
+   "id": "read-settings",
+   "name": "Read Settings",
+   "executeOnce": true,
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "url": "https://dps.psx.com.pk/market-watch",
+    "options": {
+     "response": {
+      "response": {
+       "neverError": true,
+       "responseFormat": "text",
+       "outputPropertyName": "body"
+      }
+     }
+    }
+   },
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.4,
+   "position": [
+    896,
+    0
+   ],
+   "id": "fetch-psx",
+   "name": "Fetch PSX Market Watch",
+   "executeOnce": true,
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "jsCode": "function toNumber(value, fallback = 0) {\n  if (value === null || value === undefined) return fallback;\n\n  const cleaned = String(value)\n    .replace(/,/g, \"\")\n    .replace(/%/g, \"\")\n    .replace(/[^\\d.-]/g, \"\")\n    .trim();\n\n  if (cleaned === \"\" || cleaned === \"-\" || cleaned === \".\") return fallback;\n\n  const n = Number(cleaned);\n  return Number.isFinite(n) ? n : fallback;\n}\n\nfunction cleanHtml(value) {\n  return String(value || \"\")\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, \" \")\n    .replace(/<style[\\s\\S]*?<\\/style>/gi, \" \")\n    .replace(/&nbsp;/g, \" \")\n    .replace(/&amp;/g, \"&\")\n    .replace(/&#37;/g, \"%\")\n    .replace(/<[^>]+>/g, \" \")\n    .replace(/\\s+/g, \" \")\n    .trim();\n}\n\nfunction roundTo(value, decimals = 2) {\n  const n = Number(value);\n  if (!Number.isFinite(n)) return null;\n  const factor = Math.pow(10, decimals);\n  return Math.round(n * factor) / factor;\n}\n\nfunction roundDownToLot(quantity, lotSize) {\n  const q = Math.floor(toNumber(quantity, 0));\n  const lot = Math.max(1, Math.floor(toNumber(lotSize, 1)));\n  return Math.floor(q / lot) * lot;\n}\n\nfunction safeRows(nodeName) {\n  try {\n    return $(nodeName).all().map(item => item.json);\n  } catch (error) {\n    return [];\n  }\n}\n\nfunction parseMarketWatch(rawInput) {\n  const raw = String(rawInput || \"\");\n  const rows = [];\n\n  const trMatches = raw.match(/<tr[\\s\\S]*?<\\/tr>/gi) || [];\n\n  for (const tr of trMatches) {\n    const cells = [...tr.matchAll(/<t[dh][^>]*>([\\s\\S]*?)<\\/t[dh]>/gi)]\n      .map(match => cleanHtml(match[1]))\n      .filter(cell => cell !== \"\");\n\n    if (cells.length >= 8) rows.push(cells);\n  }\n\n  const parsed = [];\n\n  for (const cells of rows) {\n    const firstCell = String(cells[0] || \"\").trim().toUpperCase();\n\n    if (!firstCell || firstCell === \"SYMBOL\") continue;\n\n    const symbol = firstCell.split(/\\s+/)[0];\n\n    const volume = toNumber(cells[cells.length - 1], null);\n    const change_pct = toNumber(cells[cells.length - 2], null);\n    const change = toNumber(cells[cells.length - 3], null);\n    const current = toNumber(cells[cells.length - 4], null);\n    const low = toNumber(cells[cells.length - 5], null);\n    const high = toNumber(cells[cells.length - 6], null);\n    const open = toNumber(cells[cells.length - 7], null);\n    const ldcp = toNumber(cells[cells.length - 8], null);\n\n    if (!symbol || current === null || !Number.isFinite(current)) continue;\n\n    parsed.push({\n      symbol,\n      ldcp,\n      open,\n      high,\n      low,\n      current,\n      change,\n      change_pct,\n      volume\n    });\n  }\n\n  if (parsed.length > 0) return parsed;\n\n  const text = cleanHtml(raw);\n  const roughLines = text\n    .split(/(?=[A-Z0-9]{2,12}\\s+\\d{4}\\s+)/g)\n    .map(line => line.trim())\n    .filter(Boolean);\n\n  for (const line of roughLines) {\n    const parts = line.split(/\\s+/);\n    if (parts.length < 10) continue;\n\n    const symbol = parts[0].toUpperCase();\n    if (symbol === \"SYMBOL\") continue;\n\n    const numericTail = parts\n      .slice(1)\n      .filter(p => /^-?[\\d,.]+%?$/.test(p));\n\n    if (numericTail.length < 7) continue;\n\n    const volume = toNumber(numericTail[numericTail.length - 1], null);\n    const change_pct = toNumber(numericTail[numericTail.length - 2], null);\n    const change = toNumber(numericTail[numericTail.length - 3], null);\n    const current = toNumber(numericTail[numericTail.length - 4], null);\n    const low = toNumber(numericTail[numericTail.length - 5], null);\n    const high = toNumber(numericTail[numericTail.length - 6], null);\n    const open = toNumber(numericTail[numericTail.length - 7], null);\n    const ldcp = toNumber(numericTail[numericTail.length - 8], null);\n\n    if (current === null || !Number.isFinite(current)) continue;\n\n    parsed.push({\n      symbol,\n      ldcp,\n      open,\n      high,\n      low,\n      current,\n      change,\n      change_pct,\n      volume\n    });\n  }\n\n  return parsed;\n}\n\nconst holdingRows = safeRows(\"Read Holdings\");\nconst cashRows = safeRows(\"Read Cash\");\nconst settingsRows = safeRows(\"Read Settings\");\nconst watchlistRows = safeRows(\"Read Watchlist\");\nconst psxItem = $(\"Fetch PSX Market Watch\").first()?.json || {};\n\nconst settings = {};\n\nfor (const row of settingsRows) {\n  const key = String(row.key || row.Key || \"\").trim();\n  const value = String(row.value || row.Value || \"\").trim();\n  if (key) settings[key] = value;\n}\n\nconst cashStart = cashRows.reduce((sum, row) => {\n  return sum + toNumber(row.amount || row.Amount, 0);\n}, 0);\n\nconst minBuy = toNumber(settings.min_change_pct_buy, 1);\nconst minSell = toNumber(settings.min_change_pct_sell, -1);\nconst maxCashFraction = toNumber(settings.max_cash_fraction_per_trade, 0.2);\nconst defaultMaxTradeValue = toNumber(settings.default_max_trade_value, 50000);\nconst defaultLotSize = Math.max(1, toNumber(settings.default_lot_size, 1));\n\nconst projectLabel = \"PSX REAL MONEY SIGNALS\";\n\nconst rawMarket =\n  psxItem.body ||\n  psxItem.data ||\n  psxItem.response ||\n  JSON.stringify(psxItem);\n\nconst marketRows = parseMarketWatch(rawMarket);\n\nconst marketBySymbol = {};\nfor (const row of marketRows) {\n  marketBySymbol[row.symbol.toUpperCase()] = row;\n}\n\nconst lots = holdingRows\n  .map(row => ({\n    symbol: String(row.symbol || row.Symbol || \"\").trim().toUpperCase(),\n    lot_id: String(row.lot_id || row.Lot_id || row.lot || \"\").trim(),\n    shares: toNumber(row.shares || row.Shares, 0),\n    avg_price: toNumber(row.avg_price || row.Avg_price || row[\"avg price\"], 0),\n    max_trade_value: toNumber(row.max_trade_value || row.Max_trade_value, defaultMaxTradeValue),\n    lot_size: Math.max(1, toNumber(row.lot_size || row.Lot_size, defaultLotSize))\n  }))\n  .filter(row => row.symbol);\n\nconst watchlist = watchlistRows\n  .map(row => ({\n    symbol: String(row.symbol || row.Symbol || \"\").trim().toUpperCase(),\n    max_trade_value: toNumber(row.max_trade_value || row.Max_trade_value, defaultMaxTradeValue),\n    lot_size: Math.max(1, toNumber(row.lot_size || row.Lot_size, defaultLotSize))\n  }))\n  .filter(row => row.symbol);\n\nconst holdingsBySymbol = {};\n\nfor (const lot of lots) {\n  if (!holdingsBySymbol[lot.symbol]) {\n    holdingsBySymbol[lot.symbol] = {\n      symbol: lot.symbol,\n      total_shares: 0,\n      total_cost: 0,\n      weighted_avg_price: 0,\n      max_trade_value: 0,\n      lot_size: lot.lot_size,\n      lots: []\n    };\n  }\n\n  const group = holdingsBySymbol[lot.symbol];\n\n  group.total_shares += lot.shares;\n  group.total_cost += lot.shares * lot.avg_price;\n  group.max_trade_value = Math.max(group.max_trade_value, lot.max_trade_value);\n  group.lot_size = Math.max(1, Math.min(group.lot_size, lot.lot_size));\n  group.lots.push(lot);\n}\n\nfor (const item of watchlist) {\n  if (!holdingsBySymbol[item.symbol]) {\n    holdingsBySymbol[item.symbol] = {\n      symbol: item.symbol,\n      total_shares: 0,\n      total_cost: 0,\n      weighted_avg_price: 0,\n      max_trade_value: item.max_trade_value || defaultMaxTradeValue,\n      lot_size: item.lot_size || defaultLotSize,\n      lots: []\n    };\n  }\n}\n\nfor (const group of Object.values(holdingsBySymbol)) {\n  group.weighted_avg_price =\n    group.total_shares > 0 ? group.total_cost / group.total_shares : 0;\n\n  if (!group.max_trade_value || group.max_trade_value <= 0) {\n    group.max_trade_value = defaultMaxTradeValue;\n  }\n\n  if (!group.lot_size || group.lot_size <= 0) {\n    group.lot_size = defaultLotSize;\n  }\n}\n\nlet simulatedCashRemaining = cashStart;\nconst signals = [];\n\nfor (const holding of Object.values(holdingsBySymbol)) {\n  const market = marketBySymbol[holding.symbol];\n\n  if (!market) {\n    signals.push({\n      symbol: holding.symbol,\n      action: \"NO_DATA\",\n      quantity: 0,\n      limit_price: null,\n      current_price: null,\n      weighted_avg_price: roundTo(holding.weighted_avg_price, 2),\n      total_shares: holding.total_shares,\n      market_volume: null,\n      change_pct: null,\n      trade_value: 0,\n      reason: \"Symbol was not found in the fetched DPS PSX market-watch data.\"\n    });\n    continue;\n  }\n\n  let action = \"DO_NOTHING\";\n  let quantity = 0;\n  let limitPrice = market.current;\n  let reason = \"No trade rule triggered.\";\n\n  const maxTradeValue = Math.min(\n    holding.max_trade_value || defaultMaxTradeValue,\n    simulatedCashRemaining * maxCashFraction\n  );\n\n  if (holding.total_shares > 0 && market.change_pct <= minSell) {\n    action = \"SELL\";\n    quantity = roundDownToLot(\n      Math.max(holding.lot_size, holding.total_shares * 0.5),\n      holding.lot_size\n    );\n    quantity = Math.min(quantity, holding.total_shares);\n    limitPrice = market.current * 0.995;\n\n    if (quantity <= 0) {\n      action = \"DO_NOTHING\";\n      quantity = 0;\n      limitPrice = market.current;\n      reason = \"Sell rule triggered, but no sellable quantity was available.\";\n    } else {\n      reason = `Candidate SELL: change_pct ${market.change_pct}% is <= sell threshold ${minSell}%. Human review required before placing order.`;\n      simulatedCashRemaining += quantity * limitPrice;\n    }\n  } else if (holding.total_shares <= 0 && market.change_pct >= minBuy && simulatedCashRemaining > 0) {\n    action = \"BUY\";\n    quantity = roundDownToLot(maxTradeValue / market.current, holding.lot_size);\n    limitPrice = market.current * 1.005;\n\n    if (quantity <= 0) {\n      action = \"DO_NOTHING\";\n      quantity = 0;\n      limitPrice = market.current;\n      reason = \"Buy rule triggered, but available cash was too small for the lot size.\";\n    } else {\n      reason = `Candidate BUY: change_pct ${market.change_pct}% is >= buy threshold ${minBuy}%. Human review required before placing order.`;\n      simulatedCashRemaining -= quantity * limitPrice;\n    }\n  } else {\n    action = \"DO_NOTHING\";\n    quantity = 0;\n    limitPrice = market.current;\n    reason = `No trade rule triggered: shares=${holding.total_shares}, change_pct=${market.change_pct}%, buy threshold=${minBuy}%, sell threshold=${minSell}%.`;\n  }\n\n  const tradeValue = quantity * limitPrice;\n\n  signals.push({\n    symbol: holding.symbol,\n    action,\n    quantity,\n    limit_price: roundTo(limitPrice, 2),\n    current_price: roundTo(market.current, 2),\n    weighted_avg_price: roundTo(holding.weighted_avg_price, 2),\n    total_shares: holding.total_shares,\n    open_price: roundTo(market.open, 2),\n    high_price: roundTo(market.high, 2),\n    low_price: roundTo(market.low, 2),\n    market_volume: market.volume,\n    change_pct: roundTo(market.change_pct, 2),\n    trade_value: roundTo(tradeValue, 2),\n    reason\n  });\n}\n\nconst runTimestamp = new Date().toISOString();\n\nconst openaiRequest = {\n  model: settings.openai_model || \"fable\",\n  max_tokens: 2500,\n  system:\n    \"You are a cautious PSX decision-support analyst for a real-money portfolio. Use only the JSON provided in the input. The input contains DPS PSX market-watch data, portfolio holdings, available cash, configured risk settings, and precomputed rule-based signals. Do not estimate missing prices, infer missing volumes, or invent symbols, quantities, prices, cash balances, or actions. Return JSON only. Do not include markdown outside JSON. Do not override the provided numeric data. Do not invent new trades. Do not recommend margin, leverage, short selling, aggressive averaging down, or all-in trades. If market data is missing, stale, inconsistent, or impossible, mark the row as NO_DATA or DO_NOTHING and explain why. BUY means candidate buy signal for human review. SELL means candidate sell signal for human review. DO_NOTHING means no trade candidate based on supplied rules/data. Quantity must be copied from the input signal. Never increase it. Limit price must be copied from the input signal. Never make it more aggressive. Keep reasons short, specific, and based only on supplied fields such as change_pct, current_price, weighted_avg_price, market_volume, cash, holdings, and configured thresholds. Include this warning in email_html: Real money involved \u2014 review manually before placing any order. If there are no BUY or SELL rows, the subject must say that no trade action was triggered. signal_count must equal the number of rows returned. Return exactly this JSON shape and nothing else: {\\\"email_subject\\\": string, \\\"email_html\\\": string, \\\"signal_count\\\": integer, \\\"rows\\\": [{\\\"symbol\\\": string, \\\"action\\\": \\\"BUY\\\"|\\\"SELL\\\"|\\\"DO_NOTHING\\\"|\\\"NO_DATA\\\", \\\"quantity\\\": number, \\\"limit_price\\\": number|null, \\\"current_price\\\": number|null, \\\"market_volume\\\": number|null, \\\"reason\\\": string}]}. Output raw JSON with no markdown fences.\",\n  messages: [\n    {\n      role: \"user\",\n      content: JSON.stringify({\n    run_timestamp: runTimestamp,\n    cash_start: roundTo(cashStart, 2),\n    simulated_cash_remaining: roundTo(simulatedCashRemaining, 2),\n    market_rows_found: marketRows.length,\n    lots,\n    watchlist,\n    cash_rows: cashRows,\n    settings: {\n      min_change_pct_buy: minBuy,\n      min_change_pct_sell: minSell,\n      max_cash_fraction_per_trade: maxCashFraction,\n      default_max_trade_value: defaultMaxTradeValue,\n      default_lot_size: defaultLotSize\n    },\n    signals\n  })\n    }\n  ]\n};\n\nreturn [\n  {\n    json: {\n      project_label: projectLabel,\n      run_timestamp: runTimestamp,\n      source_url: \"https://dps.psx.com.pk/market-watch\",\n      settings,\n      lots,\n      watchlist,\n      holdings: Object.values(holdingsBySymbol),\n      cash_rows: cashRows,\n      cash_start: roundTo(cashStart, 2),\n      simulated_cash_remaining: roundTo(simulatedCashRemaining, 2),\n      market_rows_found: marketRows.length,\n      signals,\n      openai_request: openaiRequest\n    }\n  }\n];"
+   },
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1120,
+    0
+   ],
+   "id": "build-signals",
+   "name": "Build Signals"
+  },
+  {
+   "parameters": {
+    "url": "https://84-235-242-203.sslip.io/v1/messages",
+    "sendBody": true,
+    "contentType": "raw",
+    "rawContentType": "application/json",
+    "body": "={{ JSON.stringify($json.openai_request) }}",
+    "options": {
+     "response": {
+      "response": {
+       "neverError": true,
+       "responseFormat": "json"
+      }
+     }
+    },
+    "sendHeaders": true,
+    "headerParameters": {
+     "parameters": [
+      {
+       "name": "Authorization",
+       "value": "Bearer __GW_KEY__"
+      }
+     ]
+    }
+   },
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.4,
+   "position": [
+    1328,
+    0
+   ],
+   "id": "openai-format",
+   "name": "OpenAI Format Signals",
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "jsCode": "function escapeHtml(value) {\n  return String(value ?? \"\")\n    .replace(/&/g, \"&amp;\")\n    .replace(/</g, \"&lt;\")\n    .replace(/>/g, \"&gt;\");\n}\n\nfunction fallbackEmail(base) {\n  const rows = base.signals || [];\n\n  const tableRows = rows.map(row => `\n    <tr>\n      <td>${escapeHtml(row.symbol)}</td>\n      <td><b>${escapeHtml(row.action)}</b></td>\n      <td>${escapeHtml(row.quantity)}</td>\n      <td>${escapeHtml(row.limit_price)}</td>\n      <td>${escapeHtml(row.current_price)}</td>\n      <td>${escapeHtml(row.weighted_avg_price)}</td>\n      <td>${escapeHtml(row.total_shares)}</td>\n      <td>${escapeHtml(row.change_pct)}%</td>\n      <td>${escapeHtml(row.market_volume)}</td>\n      <td>${escapeHtml(row.trade_value)}</td>\n      <td>${escapeHtml(row.reason)}</td>\n    </tr>\n  `).join(\"\");\n\n  return {\n    email_subject: `PSX Project Signals - ${base.run_timestamp}`,\n    email_html: `\n      <h2>PSX Project Signals</h2>\n      <p><b>Run time:</b> ${escapeHtml(base.run_timestamp)}</p>\n      <p><b>Market rows found:</b> ${escapeHtml(base.market_rows_found)}</p>\n      <p><b>Starting simulated cash:</b> ${escapeHtml(base.cash_start)}</p>\n      <p><b>Simulated cash remaining:</b> ${escapeHtml(base.simulated_cash_remaining)}</p>\n      <table border=\"1\" cellpadding=\"6\" cellspacing=\"0\">\n        <thead>\n          <tr>\n            <th>Symbol</th>\n            <th>Action</th>\n            <th>Quantity</th>\n            <th>Limit Price</th>\n            <th>Current Price</th>\n            <th>Weighted Avg Price</th>\n            <th>Total Shares</th>\n            <th>Change %</th>\n            <th>Market Volume</th>\n            <th>Trade Value</th>\n            <th>Reason</th>\n          </tr>\n        </thead>\n        <tbody>\n          ${tableRows}\n        </tbody>\n      </table>\n    `,\n    signal_count: rows.length,\n    rows\n  };\n}\n\nconst base = $(\"Build Signals\").first().json;\nconst response = $input.first()?.json || {};\n\nlet outputText = null;\n\nif (!outputText && Array.isArray(response.content)) {\n  for (const contentItem of response.content) {\n    if (contentItem.type === \"text\" && typeof contentItem.text === \"string\") {\n      outputText = contentItem.text;\n      break;\n    }\n  }\n}\n\nif (typeof response.output_text === \"string\") {\n  outputText = response.output_text;\n}\n\nif (!outputText && Array.isArray(response.output)) {\n  for (const outputItem of response.output) {\n    if (!Array.isArray(outputItem.content)) continue;\n\n    for (const contentItem of outputItem.content) {\n      if (contentItem.type === \"output_text\" && typeof contentItem.text === \"string\") {\n        outputText = contentItem.text;\n        break;\n      }\n    }\n\n    if (outputText) break;\n  }\n}\n\nlet aiEmail = null;\n\ntry {\n  if (outputText) aiEmail = JSON.parse(outputText);\n} catch (error) {\n  aiEmail = null;\n}\n\nif (!aiEmail || !aiEmail.email_subject || !aiEmail.email_html) {\n  aiEmail = fallbackEmail(base);\n}\n\nreturn [\n  {\n    json: {\n      ...base,\n      ai_email: aiEmail,\n      email_subject: aiEmail.email_subject,\n      email_html: aiEmail.email_html\n    }\n  }\n];"
+   },
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1520,
+    0
+   ],
+   "id": "extract-email",
+   "name": "Extract Email"
+  },
+  {
+   "parameters": {
+    "sendTo": "={{ $json.settings.recipient }}",
+    "subject": "={{ $json.email_subject }}",
+    "message": "={{ $json.email_html }}",
+    "options": {
+     "appendAttribution": false,
+     "senderName": "PSX SIGNAL ALERT"
+    }
+   },
+   "type": "n8n-nodes-base.gmail",
+   "typeVersion": 2.2,
+   "position": [
+    1712,
+    0
+   ],
+   "id": "send-email",
+   "name": "Send Signal Email",
+   "credentials": {
+    "gmailOAuth2": {
+     "id": "0e1IkEOGRZQdlHcF",
+     "name": "Gmail for abdul.71433@iqra.edu.pk"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "rule": {
+     "interval": [
+      {
+       "field": "cronExpression",
+       "expression": "*/15 9-15 * * 1-5"
+      }
+     ]
+    }
+   },
+   "type": "n8n-nodes-base.scheduleTrigger",
+   "typeVersion": 1.2,
+   "id": "schedule-15min",
+   "name": "Schedule 15min",
+   "position": [
+    80,
+    300
+   ]
+  },
+  {
+   "parameters": {},
+   "type": "n8n-nodes-base.manualTrigger",
+   "typeVersion": 1,
+   "id": "manual-run",
+   "name": "Manual Run",
+   "position": [
+    80,
+    460
+   ]
+  },
+  {
+   "parameters": {
+    "jsCode": "const src=$json.signals||[];\nreturn src.map(s=>({json:{run_ts:$json.run_timestamp,symbol:s.symbol,action:s.action,quantity:s.quantity,limit_price:s.limit_price,current_price:s.current_price,change_pct:s.change_pct,trade_value:s.trade_value,reason:s.reason}}));"
+   },
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "id": "flatten-signals",
+   "name": "Flatten Signals",
+   "position": [
+    1552,
+    240
+   ]
+  },
+  {
+   "parameters": {
+    "operation": "append",
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Signals",
+     "mode": "name"
+    },
+    "options": {},
+    "columns": {
+     "mappingMode": "autoMapInputData",
+     "value": {},
+     "matchingColumns": [],
+     "schema": [
+      {
+       "id": "run_ts",
+       "name": "run_ts"
+      },
+      {
+       "id": "symbol",
+       "name": "symbol"
+      },
+      {
+       "id": "action",
+       "name": "action"
+      },
+      {
+       "id": "quantity",
+       "name": "quantity"
+      },
+      {
+       "id": "limit_price",
+       "name": "limit_price"
+      },
+      {
+       "id": "current_price",
+       "name": "current_price"
+      },
+      {
+       "id": "change_pct",
+       "name": "change_pct"
+      },
+      {
+       "id": "trade_value",
+       "name": "trade_value"
+      },
+      {
+       "id": "reason",
+       "name": "reason"
+      }
+     ]
+    }
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "log-signals",
+   "name": "Log Signals",
+   "position": [
+    1776,
+    240
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   }
+  }
+ ],
+ "connections": {
+  "Schedule 15min": {
+   "main": [
+    [
+     {
+      "node": "Read Holdings",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Manual Run": {
+   "main": [
+    [
+     {
+      "node": "Read Holdings",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Build Signals": {
+   "main": [
+    [
+     {
+      "node": "OpenAI Format Signals",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Flatten Signals",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Flatten Signals": {
+   "main": [
+    [
+     {
+      "node": "Log Signals",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1",
+  "timezone": "Asia/Karachi"
+ },
+ "active": false
+}
