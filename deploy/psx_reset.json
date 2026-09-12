@@ -589,7 +589,7 @@
     "columns": {
      "mappingMode": "defineBelow",
      "value": {
-      "amount": 500000
+      "amount": "500000"
      },
      "matchingColumns": [],
      "schema": [

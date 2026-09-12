@@ -455,7 +455,7 @@
      "value": {
       "ts": "={{ $now.toISO() }}",
       "cash": "={{ $('Build Liquidation').first().json.final_cash }}",
-      "holdings_value": 0,
+      "holdings_value": "0",
       "portfolio_value": "={{ $('Build Liquidation').first().json.final_value }}",
       "notes": "FINAL"
      },
