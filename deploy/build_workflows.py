@@ -102,6 +102,7 @@ code = ("return [{json:{key:'end_date',value:'2026-09-19T15:30:00+05:00'}},"
 n = code_node("Build State Rows", code); n["position"] = [520 + 200 * len(wf["nodes"]), 720]; wf["nodes"].append(n); connect(wf, prev, [n["name"]])
 n2 = sheets_node("Seed State", "append", DYN, "State", {"mappingMode": "autoMapInputData", "value": {}, "matchingColumns": [], "schema": []})
 n2["position"] = [720 + 200 * len(wf["nodes"]), 720]; wf["nodes"].append(n2); connect(wf, "Build State Rows", ["Seed State"])
+wf["id"] = "psxboot0001"
 json.dump(wf, open(os.path.join(HERE, "bootstrap.json"), "w"), indent=1)
 print("bootstrap.json:", len(wf["nodes"]), "nodes")
 
@@ -180,6 +181,7 @@ log["position"] = [1776, 240]
 sig["nodes"].append(flat); sig["nodes"].append(log)
 sig["connections"]["Build Signals"] = {"main": [[{"node": "OpenAI Format Signals", "type": "main", "index": 0}, {"node": "Flatten Signals", "type": "main", "index": 0}]]}
 sig["connections"]["Flatten Signals"] = {"main": [[{"node": "Log Signals", "type": "main", "index": 0}]]}
+sig["id"] = "psxsignal001"  # explicit id or n8n import inserts NULL id and fails
 json.dump(sig, open(os.path.join(HERE, "psx_signals.json"), "w"), indent=1)
 print("psx_signals.json:", len(sig["nodes"]), "nodes; outs from trigger:", [t["node"] for t in (outs[0] if outs and outs[0] else [])])
 
@@ -300,6 +302,7 @@ connect(tr, "Apply Trades", ["Emit Trade Rows", "Clear Holding"])
 connect(tr, "Emit Trade Rows", ["Append Trades"])
 connect(tr, "Clear Holding", ["Emit Lot Rows"]); connect(tr, "Emit Lot Rows", ["Append Holding"])
 connect(tr, "Append Holding", ["Clear Cash"]); connect(tr, "Clear Cash", ["Append Cash"]); connect(tr, "Append Cash", ["Update State"])
+tr["id"] = "psxtrader001"
 json.dump(tr, open(os.path.join(HERE, "psx_trader.json"), "w"), indent=1)
 print("psx_trader.json:", len(tr["nodes"]), "nodes")
 
@@ -362,6 +365,7 @@ ap_eq2 = sheets_node("Append Final Equity", "append", copy.deepcopy(DOC), "Equit
 eod["nodes"].append(ap_eq2); connect(eod, "Append Final Cash", ["Append Final Equity"])
 done = sheets_node("Mark Done", "appendOrUpdate", copy.deepcopy(DOC), "State", {"mappingMode": "defineBelow", "value": {"key": "status", "value": "DONE"}, "matchingColumns": ["key"], "schema": []}); done["position"] = [2200, 500]
 eod["nodes"].append(done); connect(eod, "Append Final Equity", ["Mark Done"])
+eod["id"] = "psxeod00001"
 json.dump(eod, open(os.path.join(HERE, "psx_eod.json"), "w"), indent=1)
 print("psx_eod.json:", len(eod["nodes"]), "nodes")
 
@@ -395,6 +399,7 @@ st = code_node("State Rows", "return [{json:{key:'end_date',value:'2026-09-19T15
 st["position"] = [280 + 120 * len(rst["nodes"]), 950]; rst["nodes"].append(st); connect(rst, prev, ["State Rows"])
 n = sheets_node("Seed State", "append", copy.deepcopy(DOC), "State", {"mappingMode": "autoMapInputData", "value": {}, "matchingColumns": [], "schema": []})
 n["position"] = [280 + 120 * len(rst["nodes"]), 950]; rst["nodes"].append(n); connect(rst, "State Rows", ["Seed State"])
+rst["id"] = "psxreset001"
 json.dump(rst, open(os.path.join(HERE, "psx_reset.json"), "w"), indent=1)
 print("psx_reset.json:", len(rst["nodes"]), "nodes")
 print("ALL BUILT")
