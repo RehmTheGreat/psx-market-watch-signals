@@ -209,7 +209,8 @@
      "id": "nweeZqVpxfEvZ2Og",
      "name": "Sheets for abdul.71433@iqra.edu.pk"
     }
-   }
+   },
+   "alwaysOutputData": true
   },
   {
    "parameters": {
@@ -876,6 +877,16 @@
       "node": "Emit Lot Rows",
       "type": "main",
       "index": 0
+     },
+     {
+      "node": "Clear Cash",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Update State",
+      "type": "main",
+      "index": 0
      }
     ]
    ]
@@ -885,17 +896,6 @@
     [
      {
       "node": "Append Holding",
-      "type": "main",
-      "index": 0
-     }
-    ]
-   ]
-  },
-  "Append Holding": {
-   "main": [
-    [
-     {
-      "node": "Clear Cash",
       "type": "main",
       "index": 0
      }
@@ -918,17 +918,6 @@
     [
      {
       "node": "Append Cash",
-      "type": "main",
-      "index": 0
-     }
-    ]
-   ]
-  },
-  "Append Cash": {
-   "main": [
-    [
-     {
-      "node": "Update State",
       "type": "main",
       "index": 0
      }

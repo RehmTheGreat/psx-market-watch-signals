@@ -36,7 +36,8 @@
      "id": "nweeZqVpxfEvZ2Og",
      "name": "Sheets for abdul.71433@iqra.edu.pk"
     }
-   }
+   },
+   "alwaysOutputData": true
   },
   {
    "parameters": {
@@ -66,7 +67,8 @@
      "id": "nweeZqVpxfEvZ2Og",
      "name": "Sheets for abdul.71433@iqra.edu.pk"
     }
-   }
+   },
+   "alwaysOutputData": true
   },
   {
    "parameters": {
@@ -96,7 +98,8 @@
      "id": "nweeZqVpxfEvZ2Og",
      "name": "Sheets for abdul.71433@iqra.edu.pk"
     }
-   }
+   },
+   "alwaysOutputData": true
   },
   {
    "parameters": {
@@ -382,6 +385,37 @@
      "name": "Sheets for abdul.71433@iqra.edu.pk"
     }
    }
+  },
+  {
+   "parameters": {
+    "operation": "read",
+    "documentId": {
+     "__rl": true,
+     "value": "__SHEET_ID__",
+     "mode": "id"
+    },
+    "sheetName": {
+     "__rl": true,
+     "value": "Watchlist",
+     "mode": "name"
+    },
+    "options": {}
+   },
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "id": "read-watchlist",
+   "name": "Read Watchlist",
+   "position": [
+    676,
+    0
+   ],
+   "credentials": {
+    "googleSheetsOAuth2Api": {
+     "id": "nweeZqVpxfEvZ2Og",
+     "name": "Sheets for abdul.71433@iqra.edu.pk"
+    }
+   },
+   "alwaysOutputData": true
   }
  ],
  "connections": {
@@ -401,6 +435,83 @@
     [
      {
       "node": "Read Holdings",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Read Holdings": {
+   "main": [
+    [
+     {
+      "node": "Read Cash",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Read Cash": {
+   "main": [
+    [
+     {
+      "node": "Read Settings",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Read Settings": {
+   "main": [
+    [
+     {
+      "node": "Read Watchlist",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Read Watchlist": {
+   "main": [
+    [
+     {
+      "node": "Fetch PSX Market Watch",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Fetch PSX Market Watch": {
+   "main": [
+    [
+     {
+      "node": "Build Signals",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "OpenAI Format Signals": {
+   "main": [
+    [
+     {
+      "node": "Extract Email",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Extract Email": {
+   "main": [
+    [
+     {
+      "node": "Send Signal Email",
       "type": "main",
       "index": 0
      }

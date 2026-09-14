@@ -122,6 +122,10 @@ for n in repo["nodes"]:
         m["parameters"]["documentId"] = copy.deepcopy(DOC)
         m["parameters"]["sheetName"] = {"__rl": True, "value": tab, "mode": "name"}
         m["credentials"] = copy.deepcopy(SHEETS_CRED)
+        # 2026-09-15 fix: a sheets read that matches zero rows emits ZERO items and the
+        # whole downstream chain silently starves (day-1 empty Holding tab killed every
+        # run while n8n still reported success). alwaysOutputData keeps the chain alive.
+        m["alwaysOutputData"] = True
     if m["name"] == "OpenAI Format Signals":
         # Groq chat completions (pc ruling 2026-09-13: PSX AI-format runs on Groq's free tier,
         # NOT on rehms-inference). Body needs a single leading "=" (expression mode); the
@@ -193,6 +197,23 @@ flat = code_node("Flatten Signals",
 log = sheets_node("Log Signals", "append", copy.deepcopy(DOC), "Signals", {"mappingMode": "autoMapInputData", "value": {}, "matchingColumns": [], "schema": []})
 log["position"] = [1776, 240]
 sig["nodes"].append(flat); sig["nodes"].append(log)
+# 2026-09-15 fix: Build Signals reads the watchlist via safeRows("Read Watchlist") but the
+# node never existed, so safeRows' try/catch silently returned [] and the sim could never
+# find a single BUY candidate. Add the read and wire the FULL execution chain - the patch
+# below only carried trigger->Read Holdings plus the logging branch, leaving Read Cash,
+# Read Settings, Fetch PSX, Build Signals' intake and the whole email leg disconnected.
+psx_pos = next(n["position"] for n in sig["nodes"] if n["name"] == "Fetch PSX Market Watch")
+wl_read = sheets_node("Read Watchlist", "read", copy.deepcopy(DOC), "Watchlist",
+                      position=(psx_pos[0] - 220, psx_pos[1]))
+wl_read["alwaysOutputData"] = True
+sig["nodes"].append(wl_read)
+connect(sig, "Read Holdings", ["Read Cash"])
+connect(sig, "Read Cash", ["Read Settings"])
+connect(sig, "Read Settings", ["Read Watchlist"])
+connect(sig, "Read Watchlist", ["Fetch PSX Market Watch"])
+connect(sig, "Fetch PSX Market Watch", ["Build Signals"])
+connect(sig, "OpenAI Format Signals", ["Extract Email"])
+connect(sig, "Extract Email", ["Send Signal Email"])
 sig["connections"]["Build Signals"] = {"main": [[{"node": "OpenAI Format Signals", "type": "main", "index": 0}, {"node": "Flatten Signals", "type": "main", "index": 0}]]}
 sig["connections"]["Flatten Signals"] = {"main": [[{"node": "Log Signals", "type": "main", "index": 0}]]}
 sig["id"] = "psxsignal001"  # explicit id or n8n import inserts NULL id and fails
@@ -273,6 +294,9 @@ route = {"parameters": {"conditions": {"options": {"caseSensitive": True, "leftV
 tr["nodes"].append(route); connect(tr, "Decide", ["Is Trade Run"])
 readcash = sheets_node("Read Cash", "read", copy.deepcopy(DOC), "Cash"); readcash["position"] = [880, 300]
 readhold = sheets_node("Read Holding", "read", copy.deepcopy(DOC), "Holding"); readhold["position"] = [1020, 300]
+# 2026-09-15 fix: on the first trade of the week the Holding tab is empty; a zero-item
+# read would starve Apply Trades and silently drop the trade (and every later one).
+readhold["alwaysOutputData"] = True
 tr["nodes"] += [readcash, readhold]
 connect(tr, "Is Trade Run", ["Read Cash"]); connect(tr, "Read Cash", ["Read Holding"])
 apply_ = code_node("Apply Trades", """const run=$('Decide').first().json;
@@ -318,8 +342,17 @@ tr["nodes"] += [emit_t, wt, cl_h, emit_h, ap_h, cl_c, emit_c, ap_c, up_s]
 connect(tr, "Read Holding", ["Apply Trades"])
 connect(tr, "Apply Trades", ["Emit Trade Rows", "Clear Holding"])
 connect(tr, "Emit Trade Rows", ["Append Trades"])
-connect(tr, "Clear Holding", ["Emit Lot Rows"]); connect(tr, "Emit Lot Rows", ["Append Holding"])
-connect(tr, "Append Holding", ["Clear Cash"]); connect(tr, "Clear Cash", ["Cash Row"]); connect(tr, "Cash Row", ["Append Cash"]); connect(tr, "Append Cash", ["Update State"])
+# 2026-09-15 fix: the tail used to be Append Holding -> Clear Cash -> ... -> Update State,
+# a chain that emits zero items whenever the book has no lots (sell-ALL trail exits and
+# no-action runs). That starved the cash rewrite AND the last_row cursor: after a full
+# liquidation the Holding tab was wiped without cash being credited, and stale BUY/SELL
+# rows stayed eligible forever. All bookkeeping now hangs off Clear Holding, which always
+# emits exactly one item; Emit Lot Rows -> Append Holding stays a leaf that writes nothing
+# when there are no lots. Every branch is idempotent, so running it on no-action runs is
+# a harmless rewrite of unchanged values.
+connect(tr, "Clear Holding", ["Emit Lot Rows", "Clear Cash", "Update State"])
+connect(tr, "Emit Lot Rows", ["Append Holding"])
+connect(tr, "Clear Cash", ["Cash Row"]); connect(tr, "Cash Row", ["Append Cash"])
 tr["id"] = "psxtrader001"
 json.dump(tr, open(os.path.join(HERE, "psx_trader.json"), "w"), indent=1)
 print("psx_trader.json:", len(tr["nodes"]), "nodes")
