@@ -58,9 +58,12 @@ SETTINGS = [
     ("max_cash_fraction_per_trade", 0.5), ("default_max_trade_value", 50000), ("default_lot_size", 1),
     ("momentum_weight_pct", 40), ("position_weight_pct", 30), ("volume_weight_pct", 30),
     ("score_buy_threshold", 60), ("score_sell_threshold", 60), ("volume_surge_lookback_days", 20),
-    ("circuit_breaker_pct", 10), ("stop_loss_pct", 7), ("max_position_pct_of_portfolio", 75),
+    ("circuit_breaker_pct", 10), ("stop_loss_pct", 1.5), ("max_position_pct_of_portfolio", 75),
+    ("take_profit_arm_pct", 1.5), ("trail_from_high_pct", 0.8), ("max_open_positions", 5),
+    ("eod_flat", "TRUE"), ("round_trip_cost_bps", 12), ("cgt_pct", 15), ("cash_floor_pct", 20),
+    ("min_turnover_m", 25), ("big_turnover_m", 50), ("max_band_dist_pct", 7), ("min_price", 5),
     ("min_traded_value_floor", 1000000), ("data_freshness_max_minutes", 15),
-    ("always_deploy", "TRUE"),
+    ("always_deploy", "FALSE"),
     ("openai_model", "fable"), ("discovery_enabled", "FALSE"),
 ]
 # 2026-09-15: DPS lists Engro Corp under its current ticker ENGROH (old ENGRO series
@@ -142,91 +145,7 @@ for n in repo["nodes"]:
         # browser UA required: Groq is behind Cloudflare and 1010-blocks non-browser UAs from the VPS
         m.pop("credentials", None)
     if m["name"] == "Build Signals":
-        # Translate the OpenAI Responses request into Groq's chat-completions contract.
-        # Model is a Settings-tab value (groq_model); default qwen/qwen3.8-27b per pc
-        # (2026-09-13: "use qwen 3.8 27b, intelligence matters more than parameters";
-        # llama-70b-instruct is decommissioned on Groq).
-        c = m["parameters"]["jsCode"]
-        reps = [
-            ('settings.openai_model || "gpt-4o-mini"', 'settings.groq_model || "qwen/qwen3.8-27b"'),
-            ('  max_output_tokens: 2500,\n  instructions:\n',
-             '  max_completion_tokens: 2500,\n'
-             '  response_format: { type: "json_object" },\n'
-             '  messages: [\n    {\n      role: "system",\n      content:\n'),
-            ('must equal the number of rows returned.",',
-             'must equal the number of rows returned. Return exactly this JSON shape and nothing else: '
-             '{\\"email_subject\\": string, \\"email_html\\": string, \\"signal_count\\": integer, \\"rows\\": [{\\"symbol\\": string, '
-             '\\"action\\": \\"BUY\\"|\\"SELL\\"|\\"DO_NOTHING\\"|\\"NO_DATA\\", \\"quantity\\": number, \\"limit_price\\": number|null, '
-             '\\"current_price\\": number|null, \\"market_volume\\": number|null, \\"reason\\": string}]}. '
-             'Output raw JSON with no markdown fences.",'),
-            ('  input: JSON.stringify({\n',
-             '    },\n    {\n      role: "user",\n      content: JSON.stringify({\n'),
-        ]
-        for old, new in reps:
-            assert old in c, "Build Signals anchor missing: " + old[:50]
-            c = c.replace(old, new, 1)
-        c2 = re.sub(r"  \}\),\n  text: \{[\s\S]*?\n\};", "  })\n    }\n  ]\n};", c, count=1)
-        assert c2 != c and "text: {" not in c2 and "messages: [" in c2 and "json_object" in c2, "Build Signals tail rewrite failed"
-        # 2026-09-15 (pc ruling): this sim is a DAY TRADER - it must actually deploy capital
-        # at every wake-up instead of sitting in cash whenever nothing clears the +1%
-        # near-high filter (red days produced 100% DO_NOTHING forever). If the rule engine
-        # emitted no BUY this run, buy the strongest ranked not-held watchlist symbol.
-        # One fallback per run; identical risk caps (per-symbol max_trade_value, cash
-        # fraction, lot rounding, liquidity floor). Disable with Settings always_deploy=FALSE.
-        fb_anchor = "const runTimestamp = new Date().toISOString();"
-        assert fb_anchor in c2, "Build Signals fallback anchor missing"
-        fallback = '''// ALWAYS-DEPLOY FALLBACK (pc ruling 2026-09-15)
-const alwaysDeploy = String(settings.always_deploy == null ? "TRUE" : settings.always_deploy).toUpperCase() !== "FALSE";
-const isExperimentEnd = new Date().toISOString().slice(0, 10) >= "2026-09-19";
-if (alwaysDeploy && !isExperimentEnd && simulatedCashRemaining > 0) {
-  const hasBuy = signals.some(s => s.action === "BUY");
-  if (!hasBuy) {
-    const floorValue = Number(settings.min_traded_value_floor) || 0;
-    const candidates = [];
-    for (const item of watchlist) {
-      const held = holdingsBySymbol[item.symbol];
-      if (held && held.total_shares > 0) continue;
-      const market = marketBySymbol[item.symbol];
-      if (!market || !(market.current > 0) || !(market.high > market.low)) continue;
-      if (market.volume && market.current * market.volume < floorValue) continue;
-      const rangePos = (market.current - market.low) / (market.high - market.low);
-      const turnover = market.current * (market.volume || 0);
-      const score = (market.change_pct || 0) * 4 + rangePos * 30 + Math.min(turnover / 100000000, 1) * 30;
-      candidates.push({ item: item, market: market, score: Math.round(score * 100) / 100 });
-    }
-    candidates.sort((a, b) => b.score - a.score);
-    const pick = candidates[0];
-    if (pick) {
-      const capValue = Math.min(pick.item.max_trade_value || defaultMaxTradeValue, simulatedCashRemaining * maxCashFraction);
-      const qty = roundDownToLot(capValue / pick.market.current, pick.item.lot_size || defaultLotSize);
-      if (qty > 0) {
-        const limitPrice = pick.market.current * 1.005;
-        simulatedCashRemaining -= qty * limitPrice;
-        const rangePosPct = Math.round(((pick.market.current - pick.market.low) / (pick.market.high - pick.market.low)) * 100);
-        signals.push({
-          symbol: pick.item.symbol,
-          action: "BUY",
-          quantity: qty,
-          limit_price: roundTo(limitPrice, 2),
-          current_price: roundTo(pick.market.current, 2),
-          weighted_avg_price: 0,
-          total_shares: 0,
-          open_price: roundTo(pick.market.open, 2),
-          high_price: roundTo(pick.market.high, 2),
-          low_price: roundTo(pick.market.low, 2),
-          market_volume: pick.market.volume,
-          change_pct: roundTo(pick.market.change_pct, 2),
-          trade_value: roundTo(qty * limitPrice, 2),
-          reason: "Always-deploy BUY: strongest ranked not-held watchlist candidate this run (score " + pick.score + ", change_pct " + roundTo(pick.market.change_pct, 2) + "%, at " + rangePosPct + "% of day range). Human review required before placing order."
-        });
-      }
-    }
-  }
-}
-
-'''
-        c2 = c2.replace(fb_anchor, fallback + fb_anchor, 1)
-        m["parameters"]["jsCode"] = c2
+        continue  # 2026-09-15: replaced wholesale by engine_v1.js (loaded below)
     if m["name"] == "Extract Email":
         # Anthropic + chat-completions reply shapes (keep the OpenAI Responses branches for repo parity).
         c = m["parameters"]["jsCode"]
@@ -245,13 +164,13 @@ if (alwaysDeploy && !isExperimentEnd && simulatedCashRemaining > 0) {
     if m["name"] == "Send Signal Email":
         m["credentials"] = {"gmailOAuth2": {"id": "0e1IkEOGRZQdlHcF", "name": "Gmail for abdul.71433@iqra.edu.pk"}}
     sig["nodes"].append(m)
+# 2026-09-15: intraday capitalizer engine (see research/STRATEGY_SPEC.md)
+engine = code_node("Build Signals", open(os.path.join(HERE, "engine_v1.js"), encoding="utf-8").read(), [900, 600])
+sig["nodes"].append(engine)
+
 # schedule trigger with same outgoing wiring
-conns = repo["connections"]
-outs = conns.get(oldname, {}).get("main", [[], [], []])
 sig["nodes"].append(sched("Schedule 15min", "*/15 9-15 * * 1-5", [80, 300]))
-sig["connections"]["Schedule 15min"] = {"main": outs}
 sig["nodes"].append({"parameters": {}, "type": "n8n-nodes-base.manualTrigger", "typeVersion": 1, "id": "manual-run", "name": "Manual Run", "position": [80, 460]})
-sig["connections"]["Manual Run"] = {"main": outs}
 # signal logging branch
 flat = code_node("Flatten Signals",
     "const src=$json.signals||[];\nreturn src.map(s=>({json:{run_ts:$json.run_timestamp,symbol:s.symbol,action:s.action,quantity:s.quantity,limit_price:s.limit_price,current_price:s.current_price,change_pct:s.change_pct,trade_value:s.trade_value,reason:s.reason}}));",
@@ -287,13 +206,21 @@ for i, nm in enumerate(HEAD_READS):
 connecti(sig, "Fetch PSX Market Watch", "Join Inputs", 4)
 connect(sig, "Gate", HEAD_READS + ["Fetch PSX Market Watch"])
 connect(sig, "Join Inputs", ["Build Signals"])
+# email only when the run produced actionable signals (kills 28x/day no-action spam)
+has_action = {"parameters": {"conditions": {"options": {"caseSensitive": True, "leftValue": "", "typeValidation": "loose"},
+               "conditions": [{"leftValue": "={{ $json.actionable_count }}", "rightValue": 0,
+                               "operator": {"type": "number", "operation": "gt"}}], "combinator": "and"}, "options": {}},
+              "type": "n8n-nodes-base.if", "typeVersion": 2, "id": "has-action", "name": "Has Action", "position": [1180, 300]}
+sig["nodes"].append(has_action)
+# previous-snapshot cache lives in workflow static data inside engine_v1.js (no API quota)
+connect(sig, "Build Signals", ["Has Action", "Flatten Signals"])
+connect(sig, "Has Action", ["OpenAI Format Signals"])
 connect(sig, "OpenAI Format Signals", ["Extract Email"])
 connect(sig, "Extract Email", ["Send Signal Email"])
-sig["connections"]["Build Signals"] = {"main": [[{"node": "OpenAI Format Signals", "type": "main", "index": 0}, {"node": "Flatten Signals", "type": "main", "index": 0}]]}
 sig["connections"]["Flatten Signals"] = {"main": [[{"node": "Log Signals", "type": "main", "index": 0}]]}
 sig["id"] = "psxsignal001"  # explicit id or n8n import inserts NULL id and fails
 json.dump(sig, open(os.path.join(HERE, "psx_signals.json"), "w"), indent=1)
-print("psx_signals.json:", len(sig["nodes"]), "nodes; outs from trigger:", [t["node"] for t in (outs[0] if outs and outs[0] else [])])
+print("psx_signals.json:", len(sig["nodes"]), "nodes")
 
 # ---------------- virtual trading dashboard (webhook page + data API) ----------------
 # Same-origin design: page and data webhook both live under the n8n funnel host, so the
@@ -376,28 +303,38 @@ tr["nodes"] += [readcash, readhold]
 connect(tr, "Is Trade Run", ["Read Cash"]); connect(tr, "Read Cash", ["Read Holding"])
 apply_ = code_node("Apply Trades", """const run=$('Decide').first().json;
 if (run.mode!=='trade') return [{json:{noop:true}}];
+const FEE=6/10000;   // per side; Settings round_trip_cost_bps=12 split across the round trip
+const CGT=0.15;      // Settings cgt_pct: NCCPL-withheld tax on realized intraday gains
 let cash=$('Read Cash').all().reduce((a,i)=>a+Number(i.json.amount||0),0);
-const lots=$('Read Holding').all().map(i=>({symbol:i.json.symbol,lot_id:i.json.lot_id,shares:Number(i.json.shares||0),avg_price:Number(i.json.avg_price||0),max_trade_value:Number(i.json.max_trade_value||50000),lot_size:Number(i.json.lot_size||1)})).filter(l=>l.shares>0);
+const lots=$('Read Holding').all().map(i=>({symbol:i.json.symbol,lot_id:i.json.lot_id,shares:Number(i.json.shares||0),avg_price:Number(i.json.avg_price||0),max_trade_value:Number(i.json.max_trade_value||100000),lot_size:Number(i.json.lot_size||1)})).filter(l=>l.shares>0);
 const trades=[];
 for (const s of run.new_signals){
   const price=Number(s.current_price)||Number(s.limit_price)||0;
   const base={ts:s.run_ts||new Date().toISOString(),symbol:s.symbol};
   if (!(price>0)){trades.push({...base,side:'SKIP',quantity:0,price:0,value:0,cash_after:Math.round(cash*100)/100,note:'no price'});continue;}
   if (s.action==='BUY'){
-    const qty=Math.floor(Number(s.quantity)||0);
-    const cost=qty*price;
+    let qty=Math.floor(Number(s.quantity)||0);
     if (qty<=0){trades.push({...base,side:'SKIP',quantity:0,price,value:0,cash_after:Math.round(cash*100)/100,note:'qty 0'});continue;}
-    if (cost>cash){trades.push({...base,side:'SKIP',quantity:qty,price,value:cost,cash_after:Math.round(cash*100)/100,note:'insufficient cash'});continue;}
-    lots.push({symbol:s.symbol,lot_id:'v'+Date.now()+Math.random().toString(36).slice(2,5),shares:qty,avg_price:price,max_trade_value:50000,lot_size:1});
-    cash-=cost;
-    trades.push({...base,side:'BUY',quantity:qty,price,value:Math.round(cost*100)/100,cash_after:Math.round(cash*100)/100,note:'auto'});
+    let cost=qty*price;
+    let fee=cost*FEE;
+    if (cost+fee>cash){qty=Math.floor(cash/(price*(1+FEE)));cost=qty*price;fee=cost*FEE;}
+    if (qty<=0){trades.push({...base,side:'SKIP',quantity:0,price,value:0,cash_after:Math.round(cash*100)/100,note:'insufficient cash'});continue;}
+    lots.push({symbol:s.symbol,lot_id:'v'+Date.now()+Math.random().toString(36).slice(2,5),shares:qty,avg_price:price,max_trade_value:100000,lot_size:1});
+    cash-=(cost+fee);
+    trades.push({...base,side:'BUY',quantity:qty,price,value:Math.round(cost*100)/100,cash_after:Math.round(cash*100)/100,note:'auto fee='+Math.round(fee)+' | '+String(s.reason||'').slice(0,70)});
   } else if (s.action==='SELL'){
     const held=lots.filter(l=>l.symbol===s.symbol);
-    const qty=held.reduce((a,l)=>a+l.shares,0);
+    const heldQty=held.reduce((a,l)=>a+l.shares,0);
+    const qty=Math.min(Number(s.quantity)||0, heldQty);
     if (qty<=0){trades.push({...base,side:'SKIP',quantity:0,price,value:0,cash_after:Math.round(cash*100)/100,note:'no holding'});continue;}
-    for (const l of held){lots.splice(lots.indexOf(l),1);}
-    const value=qty*price; cash+=value;
-    trades.push({...base,side:'SELL',quantity:qty,price,value:Math.round(value*100)/100,cash_after:Math.round(cash*100)/100,note:'auto'});
+    let remaining=qty, proceeds=0, costBasis=0;
+    for (const l of held){ if (remaining<=0) break; const take=Math.min(remaining,l.shares); proceeds+=take*price; costBasis+=take*l.avg_price; l.shares-=take; remaining-=take; }
+    for (let k=lots.length-1;k>=0;k--){ if (lots[k].shares<=0) lots.splice(k,1); }
+    const fee=proceeds*FEE;
+    const realized=proceeds-costBasis;
+    const tax=realized>0?realized*CGT:0;
+    cash+=(proceeds-fee-tax);
+    trades.push({...base,side:'SELL',quantity:qty,price,value:Math.round(proceeds*100)/100,cash_after:Math.round(cash*100)/100,note:'auto fee='+Math.round(fee)+' tax='+Math.round(tax)+' pnl='+Math.round(realized)+' | '+String(s.reason||'').slice(0,60)});
   }
 }
 return [{json:{lots,cash,trades,last_row:run.max_row}}];""", [1160, 300])

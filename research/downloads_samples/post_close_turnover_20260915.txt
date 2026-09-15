@@ -1,0 +1,270 @@
+
+786|786 Investments Limited|687|14468|*
+ABL|Allied Bank Limited|250|43043|*
+ADAMS|Adam Sugar Mills Limited|5|335|*
+AGHA|Agha Steel Ind.Ltd|20500|130585|*
+AGP|AGP Limited|505|76391|*
+AGSML|Abdullah Shah Ghazi Sugar Mills Limited|100|873|*
+AGTL|Al-Ghazi Tractors Limited|300|102783|*
+AICL|Adamjee Insurance Company Limited|2000|181980|*
+AICL-SEPB|Adamjee Insurance Company Limited|1500|136485|*
+AIRLINK|Air Link Communication Limited|2173|268170|*
+ALAC|Askari Life Assurance Company Limited|135000|3343950|*
+ANL|Azgard Nine Limited|149|1386|*
+ARCTM|Arctic Textile Mills Limited|1000|39030|*
+ARPL|Archroma Pakistan Limited|475|205803|*
+ARUJ|Aruj Industries Limited|1000|10530|*
+ASC|Al Shaheer Corporation Limited|3500|28315|*
+ASL|Aisha Steel Mills Limited|46420|762216|*
+ASL-SEP|Aisha Steel Mills Limited|70000|1153600|*
+ASTL|Amreli Steels Limited|10600|157516|*
+ASTM|Asim Textile Mills Limited|86750|9373338|*
+ATRL|Attock Refinery Limited|983|1096723|*
+ATRL-SEP|Attock Refinery Limited|500|558755|*
+AVN|Avanceon Limited|1137|31825|*
+BAFL|Bank Alfalah Limited|11213|633871|*
+BBFL|Big Bird Foods Limited|5920|235379|*
+BECO|Beco Steel Limited|10250|44793|*
+BERG|Berger Paints Pakistan Limited|2571|313816|*
+BFAGRO|Barkat Frisian Agro Limited|504|15266|*
+BFBIO|BF Biosciences Limited|1000|122030|*
+BFMOD|B.F. Modaraba|1000|21070|*
+BIFO|Biafo Industries Limited|405|47624|*
+BLUEX|Blue-Ex Limited|30000|180300|*
+BML|Bank Makramah Limited|4635|205933|*
+BOP|The Bank of Punjab|137510|4218807|*
+BOP-SEPB|The Bank of Punjab|25000|769250|*
+BPL|Burshane LPG (Pakistan) Limited|8712|553386|*
+BUXL|Buxly Paints Limited|2551|1724527|*
+BWCL|Bestway Cement Limited|15|6559|*
+CENI|Century Insurance Company Limited|2000|138140|*
+CEPB|Century Paper & Board Mills Limited|3434|92031|*
+CJPL|Crescent Jute Products Limited|15|255|*
+CLOV|Clover Pakistan Limited|3080|19373|*
+CLVL|Cordoba Logistics & Ventures Limited|29261|843887|*
+CNERGY|Cnergyico PK  Limited|204453|2619043|*
+CNERGY-OCT|Cnergyico PK  Limited|14000|181860|*
+CNERGY-SEP|Cnergyico PK  Limited|160000|2056000|*
+COLG|Colgate-Palmolive (Pakistan) Limited|50|58905|*
+CSAP|Crescent Steel & Allied Products Limited|350|32071|*
+CSIL|Crescent Star Insurance Limited|8907|51037|*
+DBCI|Dadabhoy Cement Industries Limited|81|821|*
+DCL|Dewan Cement Limited|33999|322991|*
+DCL-SEP|Dewan Cement Limited|20000|191000|*
+DCR|Dolmen City REIT|100|4015|*
+DEL|Dawood Equities Limited|255|4626|*
+DFSM|Dewan Farooque Spinning Mills Limited|456|5467|*
+DGKC|D.G. Khan Cement Company Limited|8415|1616269|*
+DLL|Dawood Lawrencepur Limited|100|4673|*
+DOL|Descon Oxychem Limited|711|21202|*
+DSIL|D.S. Industries Limited|93|775|*
+DSL|Dost Steels Limited|33168|144944|*
+DWAE|Dewan Automotive Engineering Limited|100|2183|*
+DWSM|Dewan Sugar Mills Limited|10|60|*
+ECOP|Ecopack Limited|500|25505|*
+EFERT|Engro Fertilizers Limited|1812|342649|*
+EMCO|Emco Industries Limited|104|4020|*
+ENGROH|Engro Holdings Limited|102575|27062362|*
+EPCL|Engro Polymer & Chemicals Limited|2000|66220|*
+ESBL|Escorts Investment Bank Limited|100|877|*
+FABL|Faysal Bank Limited|1237|112196|*
+FANM|First Al-Noor Modaraba|3150|29106|*
+FATIMA|Fatima Fertilizer Company Limited|1080|159991|*
+FCCL|Fauji Cement Company Limited|14299|754844|*
+FCCL-SEP|Fauji Cement Company Limited|30000|1584900|*
+FCCL-SEPB|Fauji Cement Company Limited|5000|258000|*
+FCEPL|Frieslandcampina Engro Pakistan Limited|7410|982714|*
+FCL|Fast Cables Limited|4850|130271|*
+FCSC|First Capital Securities Corporation|5000|25100|*
+FDPL|First Dawood Properties Limited|419|1906|*
+FECTC|Fecto Cement Limited|800|74952|*
+FFC|Fauji Fertilizer Company Limited|1065|575537|*
+FFL|Fauji Foods Limited|8895|129155|*
+FFLM|First Fidelity Leasing Modaraba|711|8141|*
+FIBLM|First IBL Modaraba|3650|54750|*
+FIL|Fateh Industries Limited|1|290|*
+FLYNG|Flying Cement Company Limited|300|11043|*
+FML|Feroze1888 Mills Limited|400|18816|*
+FNEL|First National Equities Limited|3034780|3338258|*
+FPRM|First Paramount Modaraba|8652|85309|*
+FSWL|Fateh Sports Wear Limited|50|7295|*
+FTMM|First Treet Manufacturing Modaraba|30|539|*
+GAL|Ghandhara Automobiles Limited|181|102698|*
+GAL-SEP|Ghandhara Automobiles Limited|500|284785|*
+GAMON|Gammon Pakistan Limited|190|3770|*
+GATI|Gatron (Industries) Limited|29|2436|*
+GATM|Gul Ahmed Textile Mills Limited|127|2710|*
+GCIL|Ghani Chemical Industries Limited|1389|44420|*
+GCWL|Ghani Chemworld Limited|2602|36636|*
+GDL|Ghani Dairies Limited|5852|107092|*
+GFIL|Ghazi Fabrics International Limited|39|991|*
+GGL|Ghani Global Holdings Limited|8546|166903|*
+GHNI|Ghandhara Industries Limited|2336|2733073|*
+GRR|Globe Residency REIT|7003|156587|*
+HALEON|Haleon Pakistan Limited|3241|2277840|*
+HASCOL|Hascol Petroleum Limited|11971|229125|*
+HBL|Habib Bank Limited|13104|3915344|*
+HCAR|Honda Atlas Cars (Pakistan) Limited|2869|648882|*
+HGFA|HBL Growth Fund|93|1262|*
+HICL|Habib Insurance Company Limited|2500|20075|*
+HINO|Hinopak Motors Limited|2|645|*
+HINOON|Highnoon Laboratories Limited|13|11814|*
+HIRAT|Hira Textile Mills Limited|8824|46767|*
+HMB|Habib Metropolitan Bank Limited|360|35269|*
+HTL|Hi-Tech Lubricants Limited|4343|159475|*
+HUBC|The Hub Power Company Limited|42827|8681461|*
+HUBC-SEP|The Hub Power Company Limited|1000|203210|*
+HUMNL|Hum Network Limited|1601500|16143120|*
+IBLHL|IBL HealthCare Limited|500|21445|*
+ILP|Interloop Limited|180|17802|*
+INDU|Indus Motor Company Limited|109|198924|*
+IPAK|International Packaging Films Limited|150|5729|*
+ITANZ|Itanz Technologies Limited|11860|372760|*
+ITTEFAQ|Ittefaq Iron Industries Limited|1000|7690|*
+JATM|J.A. Textile Mills Limited|5|170|*
+JSBL|JS Bank Limited|2000|24020|*
+JUBS|Jubilee Spinning & Weaving Mills Ltd.|20|1056|*
+JVDC|Javedan Corporation Limited|2837|384896|*
+KAPCO|Kot Addu Power Company Limited|1000|25940|*
+KEL|K-Electric Limited|1016277|6727754|*
+KEL-SEP|K-Electric Limited|15000|99750|*
+KML|Kohinoor Mills Limited|500|4150|*
+KOHC|Kohat Cement Company Limited|1990|181627|*
+KOHE|Kohinoor Energy Limited|110|1709|*
+KOHP|Kohinoor Power Company Limited|500|10170|*
+KOHTM|Kohat Textile Mills Limited|626|59595|*
+KOIL|Kohinoor Industries Limited|9249|316593|*
+KOSM|Kohinoor Spinning Mills Limited|1570|7960|*
+KSBP|KSB Pumps Company Limited|1510|328319|*
+LCI|Lucky Core Industries Limited|2608|562572|*
+LEUL|Leather Up Limited|400|27764|*
+LIVEN|Liven Pharma Limited|241|7372|*
+LOADS|Loads Limited|5000|63450|*
+LOTCHEM|Lotte Chemical Pakistan Limited|70630|1757274|*
+LOTCHEM-SEPB|Lotte Chemical Pakistan Limited|10500|262710|*
+LPL|Lalpir Power Limited|50|988|*
+LSECL|LSE Capital Limited.|5000|27850|*
+LSEFSL|LSE Financial Services Limited.|7005|21155|*
+LSEVL|LSE Ventures Limited|15500|182125|*
+LUCK|Lucky Cement Limited|1590|658053|*
+MACTER|Macter International Limited|281|67117|*
+MARI|Mari Energies Limited|1102|710129|*
+MARI-SEP|Mari Energies Limited|500|322055|*
+MCB|MCB Bank Limited|160|62504|*
+MDTL|Media Times Limited|275601|2122128|*
+MDTL-SEP|Media Times Limited|71000|549540|*
+MEBL|Meezan Bank Limited|20121|10926105|*
+MEBL-SEPB|Meezan Bank Limited|2000|1094000|*
+MEHT|Mehmood Textile Mills Limited|267|38734|*
+MLCF|Maple Leaf Cement Factory Limited|58561|5463741|*
+MLCF-SEP|Maple Leaf Cement Factory Limited|5500|514800|*
+MQTM|Maqbool Textile Mills Limited|900|23598|*
+MSOT|Masood Textile Mills Limited|2100|418677|*
+MTL|Millat Tractors Limited|2069|634417|*
+MUGHAL|Mughal Iron & Steel Industries Limited|3299|230468|*
+MUREB|Murree Brewery Company Limited|15|13405|*
+MWMP|Mandviwala Mauser Plastic Industries|1400|101626|*
+MZNPETF|Meezan Pakistan ETF|3500|60200|*
+NATF|National Foods Limited|312|110230|*
+NBP|National Bank of Pakistan|50|8924|*
+NCPL|Nishat Chunian Power Limited|17140|943557|*
+NETSOL|NetSol Technologies Limited|2027|239713|*
+NICL|Nimir Industrial Chemicals Limited|4200|1109094|*
+NML|Nishat Mills Limited|5000|643850|*
+NPL|Nishat Power Limited|87480|5481497|*
+NPL-SEP|Nishat Power Limited|3500|220010|*
+NRL|National Refinery Limited|2739|1432634|*
+NRSL|Nimir Resins Limited|1000|36810|*
+NSRM|The National Silk & Rayon Mills Limited|59|12241|*
+OBOY|Oilboy Energy Limited|9150|152073|*
+OCTOPUS|Octopus Digital Limited|100|2811|*
+OGDC|Oil & Gas Development Company Limited|39647|12483651|*
+OGDC-SEP|Oil & Gas Development Company Limited|9000|2842380|*
+OLPM|OLP Modaraba|13387|348999|*
+PABC|Pakistan Aluminium Beverage Cans Limited|111|10558|*
+PACE|Pace (Pakistan) Limited|5684|57465|*
+PAEL|Pak Elektron Limited|2000|70660|*
+PAEL-SEP|Pak Elektron Limited|2000|70900|*
+PAKOXY|Pakistan Oxygen Limited|1|344|*
+PAKRI|Pakistan Reinsurance Company Limited|21148|329274|*
+PASL|Pervez Ahmed Consultancy Services Ltd.|100847|253126|*
+PIAHCLA|PIA Holding Company Limited|100|2134|*
+PIBTL|Pakistan International Bulk Terminal|196624|2923799|*
+PIM|Popular Islamic Modaraba|4|244|*
+PINL|Premier Insurance Limited|120|1259|*
+PKGI|The Pakistan General Insurance Co. Ltd.|2500|110400|*
+PKGS|Packages Limited|215|156064|*
+PNSC|Pakistan National Shipping Corporation|1171|582491|*
+POWER-SEP|Power Cement Limited|5000|110900|*
+PPL|Pakistan Petroleum Limited|15013|3301359|*
+PPP|Pakistan Paper Products Limited|712|101360|*
+PPVC|Pakistan PVC Limited|2410|69071|*
+PREMA|At-Tahur Limited|1654|52448|*
+PRL|Pakistan Refinery Limited|40308|3349595|*
+PRL-SEP|Pakistan Refinery Limited|8000|666720|*
+PSO|Pakistan State Oil Company Limited|4320|1471003|*
+PSX|Pakistan Stock Exchange Limited|200|9208|*
+PSYL|Pakistan Synthetics Limited|1|155|*
+PTC|Pakistan Telecommunication Company Ltd|4002|257129|*
+QTECH|Quantum Data Technologies Limited|302375|10292845|*
+QUICE|Quice Food Industries Limited|10140|256035|*
+RPL|Roshan Packages Limited|2000|30000|*
+SARC|Sardar Chemical Industries Limited|100|8698|*
+SAZEW|Sazgar Engineering Works Limited|712|1255662|*
+SEARL|The Searle Company Limited|3983|311431|*
+SEARL-SEP|The Searle Company Limited|4000|313840|*
+SELECT|Select Technologies Limited|500|12720|*
+SGF|Service GlobalFootwear Limited|2950|310694|*
+SGPL|S.G. Power Limited|9113|252612|*
+SHCM|Shadman Cotton Mills Limited|4|247|*
+SHFA|Shifa International Hospitals Limited|3|1309|*
+SLGL|Secure Logistics-Trax Group Limited|11000|148170|*
+SLM|Service Long March Tyres Limited|15500|354175|*
+SLYT|Sally Textile Mills Limited|90|1735|*
+SNAI|Sana Industries Limited|300|11100|*
+SNGP|Sui Northern Gas Pipelines Limited|1300|116987|*
+SNGP-SEP|Sui Northern Gas Pipelines Limited|1000|90330|*
+SOYASUP|Agro Processors & Atmospheric Gases Ltd|175341|5716117|*
+SPAC2|LSE SPAC-II Limited|699|9213|*
+SPEL|SPEL Limited|18410|755178|*
+SPSL|Sitara Petroleum Service Limited|13500|203715|*
+SPWL|Saif Power Limited|25|201|*
+SSGC|Sui Southern Gas Company Limited|18660|439816|*
+SSGC-SEP|Sui Southern Gas Company Limited|11000|259820|*
+SSML|Saritow Spinning Mills Limited|2629|49636|*
+STCL|Shabbir Tiles & Ceramics Limited|2900|27086|*
+STL|Supernet Technologies Limited|25|570|*
+STPL|Siddiqsons Tin Plate Limited|35351|276798|*
+SYM|Symmetry Group Limited|2816|35679|*
+SYS|Systems Limited|5359|659211|*
+TATM|Tata Textile Mills Limited|10|1557|*
+TBL|Treet Battery Limited.|12836|113599|*
+TELE|Telecard Limited|2324|17430|*
+TGL|Tariq Glass Industries Limited|11|1821|*
+THCCL|Thatta Cement Company Limited|36100|2723384|*
+THCCL-SEP|Thatta Cement Company Limited|5000|378000|*
+TISL|Tasdeeq Information Services Limited|267500|1091400|*
+TOMCL|The Organic Meat Company Limited|867|27675|*
+TOMCL-SEP|The Organic Meat Company Limited|4000|128000|*
+TOWL|Towellers Limited|1351|185911|*
+TPL|TPL Corp Limited|1500|34410|*
+TPLI|TPL Insurance Limited|102|5083|*
+TPLP|TPL Properties Limited|38700|490716|*
+TREET|Treet Corporation Limited|2875|61669|*
+TRG|TRG Pakistan Limited|27434|1382948|*
+TRG-SEP|TRG Pakistan Limited|28500|1442100|*
+TRIPF|Tri-Pack Films Limited|100|13126|*
+TRSM|Trust Modaraba|1000|13500|*
+TSBL|Trust Securities & Brokerage Limited|8378|20359|*
+TSPL|Tri-Star Power Limited|5763|82180|*
+UBL|United Bank Limited|1560|653578|*
+UDLI|UDL International Limited|134|2202|*
+UNITY|Unity Foods Limited|44000|357280|*
+UNITY-SEP|Unity Foods Limited|51000|414630|*
+WAFI|Wafi Energy Pakistan Limited|95|14687|*
+WAVES|Waves Corporation Limited|100|902|*
+WTL|Worldcall Telecom Limited|60300|63918|*
+YOUW|Yousaf Weaving Mills Limited|2422|11311|*
+ZAHID|Zahidjee Textile Mills Limited|806|50585|*
+ZTL|Zephyr Textiles Limited|440|6411|*
+ZUMA|Zuma Resources Limited|204000|4979640|*
