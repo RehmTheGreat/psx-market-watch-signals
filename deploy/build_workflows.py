@@ -286,7 +286,7 @@ decide = code_node("Decide", """const state={}; for (const it of $('Read State')
 const end=new Date(state.end_date||'2026-09-19T15:30:00+05:00');
 const sigs=$('Read Signals').all().map(i=>i.json).filter(r=>r.symbol);
 const last=Number(state.last_row||1);
-const fresh=sigs.filter(r=>Number(r.row_number||0)>last && ['BUY','SELL'].includes(r.action));
+const fresh=sigs.filter(r=>Number(r.row_number||0)>last && ['BUY','SELL'].includes(r.action) && (Date.now()-Date.parse(r.run_ts))<30*60*1000);
 if (new Date()>=end || state.status!=='RUNNING') return [{json:{mode: state.status==='DONE'?'noop':'final'}, last_row:last, state}];
 return [{json:{mode:'trade', last_row:last, max_row:Math.max(last,...sigs.map(r=>Number(r.row_number||0))), new_signals:fresh}}];""", [440, 300])
 decide["executeOnce"] = True

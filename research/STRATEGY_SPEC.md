@@ -1,4 +1,11 @@
-# STRATEGY_SPEC.md — PSX Intraday Capitalizer v1 (2026-09-15)
+# STRATEGY_SPEC.md — PSX Intraday Capitalizer v1 (2026-09-15, audited)
+
+Audit 2026-09-15 (adversarial subagent, pre-first-day): BLOCKERS fixed - PKT offset +330->+300
+(all session windows were 30 min early), undefined ALWAYS removed (entry block crash), velocity
+cache staleness guard (25 min, else overnight gap masquerades as 15-min momentum), open=0
+Infinity guard, lower-lock guard (skip change_pct<=-6), 30-min signal freshness gate in trader.
+Deferred to week one: Signals-tab metadata columns, CGT daily netting, fee/CGT knobs wired
+into Apply Trades, final-liquidation friction.
 
 Evidence base: 5y + 1y daily EOD for 103 KSE100/KMI30 symbols (research\eod_history),
 2026-09-15 whole-market snapshot, DPS endpoint probe. Author: orchestrator (subagent quota
@@ -24,7 +31,7 @@ volume) >= 50M PKR; (b) today turnover >= 25M PKR hard floor; (c) |change_pct| <
 room: exits must not face a ±10% lock); (d) current >= PKR 5 (penny filter); (e) high > low.
 
 ## Two entry families (both gated by regime + session windows)
-Family A — Auction-fade recovery: gap_pct = (open-ldcp)/ldcp <= -0.7%, AND stabilization:
+Family A — Auction-fade recovery: gap_pct = (open-ldcp)/ldcp <= -1.0% (audit: -0.7% dips into a no-edge bucket; the edge lives at <=-1.0%), AND stabilization:
 current >= open AND 15-min velocity_pct >= -0.1 (stopped sinking). Score A =
 (current/open - 1)*100 + rel_vol*2, where rel_vol = volume / median(volume over eligible set).
 Family B — Intraday momentum continuation: velocity_pct = (current - prev_current)/prev_current

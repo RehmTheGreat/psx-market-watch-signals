@@ -83,7 +83,11 @@ const psxItem = $("Fetch PSX Market Watch").first()?.json || {};
 // across runs, saved on successful execution). The 2026-09-15 Sheets-tab cache blew the
 // Google "writes per minute" quota with a ~450-row rewrite every 15 minutes.
 const STATIC = $getWorkflowStaticData("global");
-const prev = STATIC.market_cache || {};
+// staleness guard (audit M1): velocity must come from THIS session's previous snapshot,
+// never from yesterday's last run (that would make Family B chase overnight gaps)
+const cacheTs = Date.parse(STATIC.market_cache_ts || "");
+const cacheFresh = Number.isFinite(cacheTs) && (Date.now() - cacheTs) <= 25 * 60 * 1000;
+const prev = cacheFresh ? (STATIC.market_cache || {}) : {};
 
 const settings = {};
 for (const row of settingsRows) {
@@ -108,7 +112,7 @@ const marketRows = parseMarketWatch(psxItem.body || psxItem.data || psxItem.resp
 const marketBySymbol = {};
 for (const row of marketRows) marketBySymbol[row.symbol.toUpperCase()] = row;
 const now = new Date();
-const pktMin = (now.getUTCHours() * 60 + now.getUTCMinutes() + 330) % 1440;
+const pktMin = (now.getUTCHours() * 60 + now.getUTCMinutes() + 300) % 1440;
 const isFriday = now.getUTCDay() === 5;
 let entriesOpen = false;
 if (isFriday) entriesOpen = (pktMin >= 585 && pktMin <= 675) || (pktMin >= 885 && pktMin <= 886);
@@ -199,6 +203,8 @@ if (regimeOk && entriesOpen && !eodFlatTime && marketRows.length > 50) {
   const candidates = [];
   for (const m of eligible) {
     if (heldSet.has(m.symbol)) continue;
+    if (!(m.open > 0)) continue;
+    if (m.change_pct <= -6) continue;  // audit: too close to the lower lock - unexit-able
     const p = prev[m.symbol];
     const prevCur = p ? toNumber(p.current, 0) : 0;
     const vel = prevCur > 0 ? (m.current / prevCur - 1) * 100 : null;
@@ -209,12 +215,7 @@ if (regimeOk && entriesOpen && !eodFlatTime && marketRows.length > 50) {
     const tvM = m.current * (m.volume || 0) / 1e6;
     const liqOk = tvM >= BIG_TV_M || /KSE100|KMI30/.test(String(m.indices || "").toUpperCase());
     if (!liqOk) continue;
-    if (ALWAYS) {
-      // dormant knob: forced best-of-market entry (disabled by default, pc ruling 2026-09-15)
-      candidates.push({ m, family: "F", score: m.change_pct + relVol * 3, vel, relVol, gap, rangePos });
-      continue;
-    }
-    if (gap <= -0.7 && recov >= 0 && (vel === null || vel >= -0.1)) {
+    if (gap <= -1.0 && recov >= 0 && (vel === null || vel >= -0.1)) {
       const score = recov + relVol * 2;
       if (score >= 0.5) candidates.push({ m, family: "A", score, vel, relVol, gap, rangePos });
     }
