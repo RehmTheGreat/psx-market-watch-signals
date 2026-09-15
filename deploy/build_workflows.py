@@ -60,9 +60,12 @@ SETTINGS = [
     ("score_buy_threshold", 60), ("score_sell_threshold", 60), ("volume_surge_lookback_days", 20),
     ("circuit_breaker_pct", 10), ("stop_loss_pct", 7), ("max_position_pct_of_portfolio", 75),
     ("min_traded_value_floor", 1000000), ("data_freshness_max_minutes", 15),
+    ("always_deploy", "TRUE"),
     ("openai_model", "fable"), ("discovery_enabled", "FALSE"),
 ]
-WATCHLIST = ["OGDC", "PPL", "MARI", "ENGRO", "LUCK", "HBL", "UBL", "FFC", "TRG", "SYS"]
+# 2026-09-15: DPS lists Engro Corp under its current ticker ENGROH (old ENGRO series
+# stopped in Jan 2025), so the watchlist must use ENGROH or every run logs NO_DATA.
+WATCHLIST = ["OGDC", "PPL", "MARI", "ENGROH", "LUCK", "HBL", "UBL", "FFC", "TRG", "SYS"]
 TABS = ["Holding", "Cash", "Settings", "Watchlist", "Signals", "Trades", "State", "Equity"]
 SCHEMAS = {
     "Holding": ["symbol", "lot_id", "shares", "avg_price", "max_trade_value", "lot_size"],
@@ -164,6 +167,65 @@ for n in repo["nodes"]:
             c = c.replace(old, new, 1)
         c2 = re.sub(r"  \}\),\n  text: \{[\s\S]*?\n\};", "  })\n    }\n  ]\n};", c, count=1)
         assert c2 != c and "text: {" not in c2 and "messages: [" in c2 and "json_object" in c2, "Build Signals tail rewrite failed"
+        # 2026-09-15 (pc ruling): this sim is a DAY TRADER - it must actually deploy capital
+        # at every wake-up instead of sitting in cash whenever nothing clears the +1%
+        # near-high filter (red days produced 100% DO_NOTHING forever). If the rule engine
+        # emitted no BUY this run, buy the strongest ranked not-held watchlist symbol.
+        # One fallback per run; identical risk caps (per-symbol max_trade_value, cash
+        # fraction, lot rounding, liquidity floor). Disable with Settings always_deploy=FALSE.
+        fb_anchor = "const runTimestamp = new Date().toISOString();"
+        assert fb_anchor in c2, "Build Signals fallback anchor missing"
+        fallback = '''// ALWAYS-DEPLOY FALLBACK (pc ruling 2026-09-15)
+const alwaysDeploy = String(settings.always_deploy == null ? "TRUE" : settings.always_deploy).toUpperCase() !== "FALSE";
+const isExperimentEnd = new Date().toISOString().slice(0, 10) >= "2026-09-19";
+if (alwaysDeploy && !isExperimentEnd && simulatedCashRemaining > 0) {
+  const hasBuy = signals.some(s => s.action === "BUY");
+  if (!hasBuy) {
+    const floorValue = Number(settings.min_traded_value_floor) || 0;
+    const candidates = [];
+    for (const item of watchlist) {
+      const held = holdingsBySymbol[item.symbol];
+      if (held && held.total_shares > 0) continue;
+      const market = marketBySymbol[item.symbol];
+      if (!market || !(market.current > 0) || !(market.high > market.low)) continue;
+      if (market.volume && market.current * market.volume < floorValue) continue;
+      const rangePos = (market.current - market.low) / (market.high - market.low);
+      const turnover = market.current * (market.volume || 0);
+      const score = (market.change_pct || 0) * 4 + rangePos * 30 + Math.min(turnover / 100000000, 1) * 30;
+      candidates.push({ item: item, market: market, score: Math.round(score * 100) / 100 });
+    }
+    candidates.sort((a, b) => b.score - a.score);
+    const pick = candidates[0];
+    if (pick) {
+      const capValue = Math.min(pick.item.max_trade_value || defaultMaxTradeValue, simulatedCashRemaining * maxCashFraction);
+      const qty = roundDownToLot(capValue / pick.market.current, pick.item.lot_size || defaultLotSize);
+      if (qty > 0) {
+        const limitPrice = pick.market.current * 1.005;
+        simulatedCashRemaining -= qty * limitPrice;
+        const rangePosPct = Math.round(((pick.market.current - pick.market.low) / (pick.market.high - pick.market.low)) * 100);
+        signals.push({
+          symbol: pick.item.symbol,
+          action: "BUY",
+          quantity: qty,
+          limit_price: roundTo(limitPrice, 2),
+          current_price: roundTo(pick.market.current, 2),
+          weighted_avg_price: 0,
+          total_shares: 0,
+          open_price: roundTo(pick.market.open, 2),
+          high_price: roundTo(pick.market.high, 2),
+          low_price: roundTo(pick.market.low, 2),
+          market_volume: pick.market.volume,
+          change_pct: roundTo(pick.market.change_pct, 2),
+          trade_value: roundTo(qty * limitPrice, 2),
+          reason: "Always-deploy BUY: strongest ranked not-held watchlist candidate this run (score " + pick.score + ", change_pct " + roundTo(pick.market.change_pct, 2) + "%, at " + rangePosPct + "% of day range). Human review required before placing order."
+        });
+      }
+    }
+  }
+}
+
+'''
+        c2 = c2.replace(fb_anchor, fallback + fb_anchor, 1)
         m["parameters"]["jsCode"] = c2
     if m["name"] == "Extract Email":
         # Anthropic + chat-completions reply shapes (keep the OpenAI Responses branches for repo parity).
@@ -199,19 +261,32 @@ log["position"] = [1776, 240]
 sig["nodes"].append(flat); sig["nodes"].append(log)
 # 2026-09-15 fix: Build Signals reads the watchlist via safeRows("Read Watchlist") but the
 # node never existed, so safeRows' try/catch silently returned [] and the sim could never
-# find a single BUY candidate. Add the read and wire the FULL execution chain - the patch
-# below only carried trigger->Read Holdings plus the logging branch, leaving Read Cash,
-# Read Settings, Fetch PSX, Build Signals' intake and the whole email leg disconnected.
+# find a single BUY candidate. Add the read and wire the FULL execution chain.
+#
+# 2026-09-15 fix 2: the linear chain (Read Holdings -> Read Cash -> ...) starves whenever a
+# read emits zero items, and this n8n build does NOT reliably honor alwaysOutputData on
+# scheduled executions (CLI runs honored it, service runs emitted 0 items and died at
+# Read Holdings all day). Rebuilt the head on the EOD workflow's proven topology: a Gate
+# code node always emits exactly one item, fans out to every read + the PSX fetch, and a
+# Merge (append) feeds Build Signals, which pulls everything via $('Node') refs anyway.
+# With Gate -> Fetch PSX guaranteed non-empty, Build Signals always runs exactly once.
+gate = code_node("Gate", "return [{json:{started_at: new Date().toISOString()}}];", [80, 620])
+sig["nodes"].append(gate)
+sig["connections"]["Schedule 15min"] = {"main": [[{"node": "Gate", "type": "main", "index": 0}]]}
+sig["connections"]["Manual Run"] = {"main": [[{"node": "Gate", "type": "main", "index": 0}]]}
 psx_pos = next(n["position"] for n in sig["nodes"] if n["name"] == "Fetch PSX Market Watch")
 wl_read = sheets_node("Read Watchlist", "read", copy.deepcopy(DOC), "Watchlist",
-                      position=(psx_pos[0] - 220, psx_pos[1]))
+                      position=(psx_pos[0] - 220, psx_pos[1] + 200))
 wl_read["alwaysOutputData"] = True
 sig["nodes"].append(wl_read)
-connect(sig, "Read Holdings", ["Read Cash"])
-connect(sig, "Read Cash", ["Read Settings"])
-connect(sig, "Read Settings", ["Read Watchlist"])
-connect(sig, "Read Watchlist", ["Fetch PSX Market Watch"])
-connect(sig, "Fetch PSX Market Watch", ["Build Signals"])
+join = merge_node("Join Inputs", 5, (psx_pos[0] + 260, psx_pos[1] + 200))
+sig["nodes"].append(join)
+HEAD_READS = ["Read Holdings", "Read Cash", "Read Settings", "Read Watchlist"]
+for i, nm in enumerate(HEAD_READS):
+    connecti(sig, nm, "Join Inputs", i)
+connecti(sig, "Fetch PSX Market Watch", "Join Inputs", 4)
+connect(sig, "Gate", HEAD_READS + ["Fetch PSX Market Watch"])
+connect(sig, "Join Inputs", ["Build Signals"])
 connect(sig, "OpenAI Format Signals", ["Extract Email"])
 connect(sig, "Extract Email", ["Send Signal Email"])
 sig["connections"]["Build Signals"] = {"main": [[{"node": "OpenAI Format Signals", "type": "main", "index": 0}, {"node": "Flatten Signals", "type": "main", "index": 0}]]}
